@@ -1,17 +1,19 @@
 # Simple Bar Chart
-![](https://vega.github.io/vega-lite/examples/bar.png)
+
+Final Result
+![](https://i.imgur.com/JggMN3u.png)
 
 ```javascript
-{
+CustomChart {
 	fields {
-		field a {
+		field _dimension {
 			type: "dimension"
-			label: "field a"
+			label: "Dimension"
 		}
 
-		field b {
+		field _measure {
 			type: "measure"
-			label: "field b"
+			label: "Value"
 		}
 	}
 
@@ -24,7 +26,7 @@
 		option bar_color {
 			type: 'color-picker'
 			label: 'Bar color'
-			default_value: 'cyan'
+			default_value: '#00FFFF'
 		}
 	}
 
@@ -40,7 +42,7 @@
 		},
 		"encoding": {
 			"x": {
-					"field": @{fields.a.name}, 
+					"field": @{fields._dimension.name}, 
 					"type": "temporal", 
 					"axis": {
 						"labelAngle": -45,
@@ -48,7 +50,7 @@
 						}
 					},
 			"y": {
-				"field": @{fields.b.name}, 
+				"field": @{fields._measure.name}, 
 				"type": "quantitative"
 				}
 			}
