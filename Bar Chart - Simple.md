@@ -1,8 +1,8 @@
 # Simple Bar Chart
 ![](https://vega.github.io/vega-lite/examples/bar.png)
 
-```json
-CustomChart {
+```javascript
+{
 	fields {
 		field a {
 			type: "dimension"
