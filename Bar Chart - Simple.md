@@ -6,12 +6,12 @@ Final Result
 ```javascript
 CustomChart {
 	fields {
-		field _dimension {
+		field dimension {
 			type: "dimension"
 			label: "Dimension"
 		}
 
-		field _measure {
+		field measure {
 			type: "measure"
 			label: "Value"
 		}
@@ -36,24 +36,28 @@ CustomChart {
 		},
 		"mark": {
 			"type": "bar",
-			"width": 20,
 			"tooltip": @{options.tooltip.value},
 			"color": @{options.bar_color.value}
 		},
 		"encoding": {
 			"x": {
-					"field": @{fields._dimension.name}, 
-					"type": "temporal", 
-					"axis": {
-						"labelAngle": -45,
-						"format": "%B of %Y"
-						}
-					},
+				"field": @{fields.dimension.name}, 
+				"type": "temporal", 
+				"axis": {
+					"labelAngle": -45,
+					"format": @{fields.dimension.format},
+					"formatType": "holisticsFormat"
+				}
+			},
 			"y": {
-				"field": @{fields._measure.name}, 
-				"type": "quantitative"
+				"field": @{fields.measure.name}, 
+				"type": "quantitative",
+				"axis": {
+					"format": @{fields.measure.format},
+					"formatType": "holisticsFormat"
 				}
 			}
+		}
 	};;
 }
 ```
