@@ -8,7 +8,7 @@ Custom Chart is a feature in Holistics that allows you to define new chart types
 
 To learn more about Custom Chart, head over to [Custom Chart doc](https://docs.holistics.io/docs/charts/custom-charts).
 
-## What is this library? How can I use this?
+## What is this library? 
 
 This is a collection of pre-defined Custom Chart templates to showcase a variety of use cases that Custom Chart can support. 
 
