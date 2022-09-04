@@ -14,6 +14,7 @@ We will define a Candlestick/OHLC Custom Chart that looks like this:
 By using 2 types of marks, `rule` (a straight line) and `bar` from Vega-lite, on a mixed chart (using `layer` property), we are able to create the candlestick shape.
 
 To learn more about Vega-lite marks, see: https://vega.github.io/vega-lite/docs/mark.html#types. 
+
 To learn more about layer property, see: https://vega.github.io/vega-lite/docs/layer.html. 
 
 ## Full-code
