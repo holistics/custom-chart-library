@@ -1,18 +1,18 @@
-# Enable Cross Filtering on user’s point selection
+# Enable Cross Filter on user’s point selection
 
-{% note %}
 
-**What is Cross Filtering?**
+> **What is Cross Filtering?**
 
-Cross filtering creates shared filters that are applied to all report widgets in your dashboard. 
+> Cross filtering creates shared filters that are applied to all report widgets in your dashboard. To learn more about this feature, head over to: https://docs.holistics.io/docs/cross-filtering#what-is-cross-filtering. 
 
-To learn more about this feature, head over to: https://docs.holistics.io/docs/cross-filtering#what-is-cross-filtering. 
-
-{% endnote %}
 
 ## Outcome
 
 When a user selects a data range on your chart, a cross filter containing the selected range would be applied to all report widgets in your dashboard. 
+
+
+https://user-images.githubusercontent.com/27631976/188298824-d8772e71-8345-412a-9d74-d383f2f1ea23.MP4
+
 
 ## Prerequisite: 
 
