@@ -2,8 +2,9 @@
 
 ## Goal
 
-When a dashboard cross filter is generated, it would be applied for all sub-charts in the chart. 
+When a dashboard cross filter is generated, it would be applied for all sub-charts in the chart.
 
+https://user-images.githubusercontent.com/27631976/188302677-b4c9b073-ba3f-4921-8447-f746b7b308b7.MP4
 
 # Prerequisite: 
 
