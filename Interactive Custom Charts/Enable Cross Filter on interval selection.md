@@ -15,6 +15,10 @@ For highlight/stroke effect on user’s selection, please see [Create highlight/
 When a user creates an interval selection (by holding Left Click then dragging it across your chosen values) on your chart, a cross filter would be applied to all report widgets in your dashboard. 
 
 
+https://user-images.githubusercontent.com/27631976/188299062-293ea380-a97e-4fc3-b559-0ef3b133dcd8.MP4
+
+
+
 ```javascript
 CustomChart {
     fields {
