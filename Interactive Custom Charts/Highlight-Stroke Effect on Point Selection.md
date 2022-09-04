@@ -4,9 +4,7 @@
 
 When a user selects a column, or a range of columns (using Shift-Left Click), the data should be highlighted. Additionally, on mouse hover, there should be a stroke outlining the column.
 
-<video src='https://cdn.holistics.io/custom-chart-library/interactive-charts/highlight-effect-on-point-selection.mov' width=500></video>
-
-
+https://user-images.githubusercontent.com/27631976/188298560-84bfe6f9-a8cb-425b-8466-d354347aac8a.MP4
 
 ```javascript
 CustomChart {
@@ -85,9 +83,6 @@ CustomChart {
           "bandPaddingInner": 0.2
         },
       },
-      "holisticsConfig": {
-        "crossFilterSignals": ["normalPointSelection"],
-      }
     };;
   }
 ```
