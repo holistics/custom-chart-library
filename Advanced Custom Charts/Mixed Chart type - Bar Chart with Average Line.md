@@ -1,8 +1,10 @@
-# Create a mixed chart: Bar Chart with Average Line
+# Create a Bar Chart with Average Line
 
 ### Goal
 
 A Bar Chart with an average line showing the mean of y-axis value.
+
+![](https://user-images.githubusercontent.com/27631976/188299724-76a85d58-2438-4d6f-9dcf-6278fe5badba.png)
 
 ```javascript
 
