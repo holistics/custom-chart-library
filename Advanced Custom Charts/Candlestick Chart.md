@@ -3,8 +3,10 @@
 ## Goal
 
 From this dataset:
+![illustration](https://user-images.githubusercontent.com/27631976/188304837-bcec6b16-f358-471f-b8a6-760115438953.png)
 
 We will define a Candlestick/OHLC Custom Chart that looks like this:
+![illustration](https://user-images.githubusercontent.com/27631976/188304845-1f1761a0-e656-4539-b9d9-d9cd4c2a6a09.png)
 
 
 ## Mechanism
