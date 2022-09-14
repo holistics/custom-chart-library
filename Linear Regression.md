@@ -1,7 +1,8 @@
 # Linear Regression R^2 
 
 Final Result
-![](image.png)
+
+<img width="929" alt="image" src="https://user-images.githubusercontent.com/27631976/190141947-41632f40-7ce7-43a0-886a-14183e2c17ed.png">
 
 ```javascript
 CustomChart {
