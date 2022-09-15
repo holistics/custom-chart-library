@@ -15,7 +15,7 @@ CustomChart {
   fields {
     field x_axis {
       type: "dimension"
-			label: "dimension"
+      label: "dimension"
     }
   }
 
