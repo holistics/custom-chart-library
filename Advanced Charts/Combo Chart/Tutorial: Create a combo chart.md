@@ -6,6 +6,8 @@ Combo chart (or combination chart, mixed type chart,...) are useful to display t
 
 In this guide, we will demonstrate on how to create a combo chart with [Custom Chart](https://docs.holistics.io/docs/charts/custom-charts) by going through the process of creating a Bar Chart with an average line showing the mean of y-axis value.
 
+![](https://user-images.githubusercontent.com/27631976/188299724-76a85d58-2438-4d6f-9dcf-6278fe5badba.png)
+
 ## Mechanism
 
 We will use [`layer`](https://vega.github.io/vega-lite/docs/layer.html) property in Vega-lite to display multiple charts into a unified view.
@@ -18,7 +20,7 @@ We will use [`layer`](https://vega.github.io/vega-lite/docs/layer.html) property
 template: @vgl {
     ...
     "layer": [{ // add your bar chart definition here },
-                        { // add your line chart definition here }]
+             { // add your line chart definition here }]
     ...	
 }
 ```
