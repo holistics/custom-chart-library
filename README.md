@@ -1,4 +1,4 @@
-# Holistics' Custom Chart Library
+# Holistics Custom Chart Library
 
 A collection of Holistics Custom Chart Templates
 
