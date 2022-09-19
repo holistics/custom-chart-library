@@ -56,15 +56,16 @@ template: @vgl {
     "data": {"values": @{values}},
     "layer": [{
             // bar chart definition is omitted for brevity
-        }, {
+        }, 
+        {
         "mark": "rule",
         "encoding": {
         "y": {
             "aggregate": "mean",
             "field": @{fields.y.name},
             "type": "quantitative"
+                }
             }
-            }
-        }],
-    };;
+       }],
+};;
 ```
