@@ -1,4 +1,4 @@
-# Enable Cross Filter for all sub-charts in a Mixed Chart
+# Enable Cross Filter for all sub-charts in a Combo Chart
 
 ## Goal
 
@@ -8,7 +8,7 @@ https://user-images.githubusercontent.com/27631976/188302677-b4c9b073-ba3f-4921-
 
 # Prerequisite: 
 
-For instructions on how to build a mixed chart, see: https://github.com/holistics/custom-chart-library/blob/main/Advanced Custom Charts/Mixed Chart type - Bar Chart with Average Line.md.
+For instructions on how to build a combo chart, see: [Tutorial: Create a Combo Chart](https://github.com/holistics/custom-chart-library/blob/main/Advanced%20Charts/Combo%20Chart/Tutorial:%20Create%20a%20combo%20chart.md).
 
 ```javascript
 
