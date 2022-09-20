@@ -1,6 +1,6 @@
 # Holistics Custom Chart Library
 
-A collection of Holistics Custom Chart Templates
+A collection of Holistics Custom Chart Templates.
 
 ## What is Custom Chart?
 
