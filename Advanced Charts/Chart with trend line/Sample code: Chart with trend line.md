@@ -102,3 +102,7 @@ CustomChart {
   };;
 }
 ```
+### Chose the regression method
+
+You could change the functional form of the regression model by setting it in the `STYLES` tab.
+![style](https://user-images.githubusercontent.com/27631976/194110238-038a8c8d-7475-441c-bfad-2528f519143e.jpg)
