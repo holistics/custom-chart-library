@@ -37,3 +37,8 @@ CustomChart {
   ;;
 }
 ```
+
+### Applying the chart
+
+![applying_histogram_custom_chart](https://user-images.githubusercontent.com/27631976/198895642-e79649d7-b790-40c0-8965-d6eb018d8be5.png)
+
