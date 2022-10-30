@@ -4,22 +4,25 @@
 
 In this guide, we will create a Histogram Chart that subdivides a numerical range into bins, and counts the number of data points within each segment. The resulting bar chart provides a discrete estimate of the probability density function.
 
-![](https://user-images.githubusercontent.com/27631976/196044744-b4df26a0-6fe9-4095-8b56-fbfd7e94b09d.png)
+![histogram_chart](https://user-images.githubusercontent.com/27631976/198895261-367ac1e3-ceee-4f6b-8b19-f0f501034d4b.png)
 
 ### Full code example
 
 ```jsx
 CustomChart {
   fields {
-    field data {
+    field grain {
       type: 'dimension'
+    }
+    field metric {
+      type: 'dimension' // this type can be dimenson or measure depends on the type of field that you want to create the histogram on
     }
   }
   template: @vgl
   {
     "data": {"values": @{values}},
     "transform": [
-      {"bin": {"maxbins": 40}, "field": @{fields.data.name}, "as": "binned_price"}
+      {"bin": {"maxbins": 40}, "field": @{fields.metric.name}, "as": "binned_price"}
     ],
     "mark": {
       "type": "bar",
