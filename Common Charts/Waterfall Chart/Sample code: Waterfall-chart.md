@@ -29,14 +29,14 @@ CustomChart {
 		"width": 800,
 	  "height": 450,
 	  "transform": [
-			{
-				"calculate": "datum['@{fields.amount.name}']",
-				"as": "amount"
-			},
-			{
-				"calculate": "datum['@{fields.label.name}']",
-				"as": "label"
-			},
+      {
+        "calculate": "datum['@{fields.amount.name}']",
+        "as": "amount"
+      },
+      {
+        "calculate": "datum['@{fields.label.name}']",
+        "as": "label"
+      },
 	    {"window": [{"op": "sum", "field": "amount", "as": "sum"}]},
 	    {"window": [{"op": "lead", "field": "label", "as": "lead"}]},
 	    {
