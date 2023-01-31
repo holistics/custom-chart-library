@@ -1,4 +1,4 @@
-# Create Candlestick/OHLC Chart
+# Candlestick/OHLC Chart
 
 ## Goal
 

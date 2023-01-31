@@ -1,15 +1,11 @@
-# Preview
+# Bubble Plot
 
 <img width="925" alt="image" src="https://user-images.githubusercontent.com/27631976/190325049-3943d728-57c0-4b7b-a9cf-31839105b862.png">
 
 
 # Sample Data
 
-<aside>
-💡 Import this data into Holistics to use
-
-</aside>
-[disasters.csv](https://github.com/holistics/custom-chart-library/files/9572233/disasters.csv)
+💡 Import this data into Holistics to use: [disasters.csv](https://github.com/holistics/custom-chart-library/files/9572233/disasters.csv)
 
 
 # Code
