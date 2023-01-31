@@ -25,7 +25,7 @@ We will use [layer](https://vega.github.io/vega-lite/docs/layer.html) property
 
 1. In your **Template** section, add a **layer** field. Recall that this field takes in an array. The first layer is for the scatterplot, and the second layer is for the trend line.
 
-```json
+```js
 template: @vgl {
     ...
     "layer": [{ // add your scatterplot definition here },
@@ -36,7 +36,7 @@ template: @vgl {
 
 2. Add the **scatterplot** definition as the first element of the **layer** array.
 
-```json
+```js
 {
  "mark": {
     "type": "point",
@@ -106,7 +106,7 @@ Now we want to add a line element, thus, we use `layer` to include both the sc
 
 We also need to calculate the coordinates (using the [regression](https://vega.github.io/vega-lite/docs/regression.html) transform) and encode the line properties using the transformed data:
 
-```json
+```js
 {
     "mark": {
       "type": "line",

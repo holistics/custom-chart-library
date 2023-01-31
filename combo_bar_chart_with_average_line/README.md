@@ -16,7 +16,7 @@ We will use [`layer`](https://vega.github.io/vega-lite/docs/layer.html) property
 
 1. In your **Template** section, add a **layer** field. Recall that this field takes in an array. The first layer  is for the bar chart, and the second layer is for the mean/average line. 
 
-```json
+```js
 template: @vgl {
     ...
     "layer": [{ // add your bar chart definition here },
@@ -27,7 +27,7 @@ template: @vgl {
     
 2. Add the **Bar Chart** definition as the first element of the **layer** array.
     
-```json
+```js
 template: @vgl {
     ...
     "layer": [{
@@ -51,7 +51,7 @@ template: @vgl {
     
 3. Add the **Line Chart** definition as the second element of the **layer** array.
     
-```json
+```js
 template: @vgl {
     "data": {"values": @{values}},
     "layer": [{
