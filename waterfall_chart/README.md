@@ -1,10 +1,9 @@
-### Goal
+# Waterfall Chart
 
-In this guide, we will create a Waterfall Chart that looks like this:
 
 <img width="925" alt="image" src="https://user-images.githubusercontent.com/27631976/190190372-9c885f38-4428-4264-8df6-2a8fd77b5c24.png">
 
-### Full code example
+## Full code example
 
 ```javascript
 CustomChart {
