@@ -1,4 +1,4 @@
-# Create a combo chart
+# Combo Chart: Bar Chart with Average Line
 
 ## Introduction
 

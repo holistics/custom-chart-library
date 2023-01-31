@@ -1,12 +1,3 @@
-### Introduction
-
-In this guide, we will guide you on how to add a regression trendline over a scatterplot that models field `"y"` as a function of `"x"` 
-
-![linear regression trend line](https://user-images.githubusercontent.com/27631976/194109892-746c5fb4-74f2-4616-a714-8a3276149611.png)
-
-### Full code example
-
-```json
 CustomChart {
   fields {
     field x {
@@ -101,8 +92,3 @@ CustomChart {
     ]
   };;
 }
-```
-### Chose the regression method
-
-You could change the functional form of the regression model by setting it in the `STYLES` tab.
-![style](https://user-images.githubusercontent.com/27631976/194110238-038a8c8d-7475-441c-bfad-2528f519143e.jpg)
