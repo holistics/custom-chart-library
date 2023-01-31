@@ -5,11 +5,7 @@
 
 # Sample Data
 
-<aside>
-💡 Import this data into Holistics to use
-
-</aside>
-[seattle-weather.csv](https://github.com/holistics/custom-chart-library/files/9571836/seattle-weather.csv)
+💡 Import this data into Holistics to use: [seattle-weather.csv](https://github.com/holistics/custom-chart-library/files/9571836/seattle-weather.csv)
 
 
 # Code
