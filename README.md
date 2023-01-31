@@ -2,6 +2,9 @@
 
 A collection of Holistics Custom Charts Templates
 
+![](https://i.imgur.com/fRiA1Vp.png)
+
+
 ## What is Custom Chart?
 
 Custom Chart is a feature in Holistics that allows you to define new chart types that accommodate your business needs. 
