@@ -1,9 +1,3 @@
-# Simple Bar Chart
-
-Final Result
-![](https://i.imgur.com/JggMN3u.png)
-
-```javascript
 CustomChart {
 	fields {
 		field dimension {
@@ -60,4 +54,3 @@ CustomChart {
 		}
 	};;
 }
-```
