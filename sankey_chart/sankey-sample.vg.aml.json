@@ -1,21 +1,61 @@
-
 CustomChart {
-    fields {
-      field source {
-        type: "dimension"
-        label: "Source Node"
+  fields {
+    field source {
+      type: "dimension"
+      label: "Source Node"
+      data_type: "string"
     }
-      field target {
-        type: "dimension"
-        label: "Target Node"
+    field target {
+      type: "dimension"
+      label: "Target Node"
+      data_type: "string"
     }
-      field volume {
-        type: "dimension"
-        label: "Volume for link from Source-Target"
+    field volume {
+      type: "dimension"
+      label: "Volume for link from Source-Target"
+      data_type: "number"
     }
   }
-    template: @vgl
-    {
+  options {
+    option node_align {
+      label: "Node Align"
+      type: "select"
+      options: ["justify", "left", "right", "center"]
+      default_value: "justify"
+    }
+    option node_width {
+      label: "Node Width"
+      type: "number-input"
+      default_value: 15
+    }
+    option node_padding {
+      label: "Node Padding"
+      type: "number-input"
+      default_value: 10
+    }
+    option margin_top {
+      label: "Margin Top"
+      type: "number-input"
+      default_value: 10
+    }
+    option margin_left {
+      label: "Margin Left"
+      type: "number-input"
+      default_value: 10
+    }
+    option margin_right {
+      label: "Margin right"
+      type: "number-input"
+      default_value: 10
+    }
+    option margin_bottom {
+      label: "Margin bottom"
+      type: "number-input"
+      default_value: 10
+    }
+  }
+  template: @vgl
+  {
     "$schema": "https://vega.github.io/schema/vega/v5.json",
     "width": 1000,
     "height": 600,
@@ -23,8 +63,7 @@ CustomChart {
     "data": [
       {
         "name": "table",
-        "values": @{values
-        }
+        "values": @{values}
       },
       {
         "name": "nodesAndLinks",
@@ -44,7 +83,14 @@ CustomChart {
             "type": "sankey",
             "source": "datum['@{fields.source.name}']",
             "target": "datum['@{fields.target.name}']",
-            "volume": "datum['@{fields.volume.name}']"
+            "volume": "datum['@{fields.volume.name}']",
+            "nodeAlign": @{options.node_align.value},
+            "nodeWidth": @{options.node_width.value},
+            "nodePadding": @{options.node_padding.value},
+            "marginTop": @{options.margin_top.value},
+            "marginRight": @{options.margin_right.value},
+            "marginBottom": @{options.margin_bottom.value},
+            "marginLeft": @{options.margin_left.value}
           },
           {
             "type": "formula",
@@ -409,3 +455,4 @@ CustomChart {
     ]
   };;
 }
+    
