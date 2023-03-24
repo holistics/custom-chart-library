@@ -1,7 +1,7 @@
 # Sankey Chart
 
 ## Goal
-In this guide, we will create a Sankey Chart to depict how energy is converted before being consumed or lost.
+In this guide, we will create a **Sankey Chart** to depict how energy is converted before being consumed or lost.
 
 ![Screen Shot 2023-03-16 at 12 16 23 PM](https://user-images.githubusercontent.com/124118181/225521638-9898c83d-b45e-4ca8-ba80-9a80d1f60d5b.png)
 
@@ -9,7 +9,7 @@ In this guide, we will create a Sankey Chart to depict how energy is converted b
 
 💡 Import this data into Holistics to use: [sankey-sample-data.csv](https://github.com/holistics/custom-chart-library/files/11058203/sankey-sample-data.csv)
 
-(Source: [Department of Energy & Climate Change](http://www.decc.gov.uk/en/content/cms/tackling/2050/calculator_on/calculator_on.aspx) via [Tom Counsell](https://tamc.github.io/Sankey/).)
+*(Source: [Department of Energy & Climate Change](http://www.decc.gov.uk/en/content/cms/tackling/2050/calculator_on/calculator_on.aspx))*
 
 ## Full Code Example
 
