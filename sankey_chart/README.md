@@ -8,7 +8,7 @@ In this guide, we will create a **Sankey Chart** to depict how energy is convert
 ## Notes
 Holistics’s Sankey diagram only supports acyclic link. Loop link is unavailable at the moment.
 
-Meaning you cannot render Sankey chart where a node in a stage link back to another node in a previous stage. e.g. node `A` link to node `B`, and node `B` link back to node `A`.
+Meaning you cannot render Sankey chart where a node in a latter stage link back to another node in a previous stage. _e.g. node `A` link to node `B`, and node `B` link back to node `A`._
 
 ## Sample Data
 
