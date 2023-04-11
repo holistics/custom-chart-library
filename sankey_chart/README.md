@@ -5,6 +5,11 @@ In this guide, we will create a **Sankey Chart** to depict how energy is convert
 
 ![Screen Shot 2023-03-16 at 12 16 23 PM](https://user-images.githubusercontent.com/124118181/225521638-9898c83d-b45e-4ca8-ba80-9a80d1f60d5b.png)
 
+## Notes
+Holistics’s Sankey diagram only supports acyclic link. Loop link is unavailable at the moment.
+
+Meaning you cannot render Sankey chart where a node in a stage link back to another node in a previous stage. e.g. node `A` link to node `B`, and node `B` link back to node `A`.
+
 ## Sample Data
 
 💡 Import this data into Holistics to use: [sankey-sample-data.csv](https://github.com/holistics/custom-chart-library/files/11058203/sankey-sample-data.csv)
