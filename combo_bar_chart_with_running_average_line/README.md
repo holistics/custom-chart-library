@@ -1,6 +1,6 @@
 # Combo Chart: Bar Chart with Running Average Line
 
-*Author: [**@ianbmc**](https://github.com/ianbmc)
+*Author: [**@ianbmc**](https://github.com/ianbmc)*
 
 ## Introduction
 
