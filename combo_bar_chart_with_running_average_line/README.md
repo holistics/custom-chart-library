@@ -6,11 +6,10 @@
 
 This is a template code for Bar Chart with a Line of Running Average.
 
-![demo-bar-moving-avg](https://user-images.githubusercontent.com/106363759/232543243-11936d05-df3d-41df-963a-c924e4fcb1ab.png)
+![demo-bar-moving-avg](https://user-images.githubusercontent.com/106363759/232546260-02a54e82-7827-4d2c-a57c-6b9c59304eb8.png)
 
-Similar to [Combo Chart: Bar Chart with Average Line](https://github.com/holistics/custom-chart-library/tree/main/combo_bar_chart_with_average_line), in this code we will create a combo that consists of:
-- a Bar chart
-- and an average line showing the moving (or running) mean of y-axis value
+
+Similar to [Combo Chart: Bar Chart with Average Line](https://github.com/holistics/custom-chart-library/tree/main/combo_bar_chart_with_average_line), in this code we will create a combo of chart, consisting of a **Bar chart**, and an **average line showing the moving (or running) mean** of y-axis value
 
 ## Full Code Example
 
@@ -45,67 +44,67 @@ CustomChart {
 			label: 'Line color'
 			default_value: '#00FFFF'
 		}
-    option points_before {
-      type: 'number-input'
-      label: 'Points before'
-      default_value: -3
-    }
-    option points_after {
-      type: 'number-input'
-      label: 'Points after'
-      default_value: 0
-    }    
+		option points_before {
+			type: 'number-input'
+			label: 'Points before'
+			default_value: -3
+		}
+		option points_after {
+			type: 'number-input'
+			label: 'Points after'
+			default_value: 0
+		}    
 	}
 
 	template: @vgl {
 		"data": {
 			"values": @{values}
 		},
-    "transform": [
-    {
-      "sort": [{"field": @{fields.dimension.name}}],
-      "window": [{"op": "average", "field": @{fields.measure.name}, "as": "avg"}],
-      "frame": [@{options.points_before.value}, @{options.points_after.value}]
-    }
-    ],
-    "layer": [
-		{"mark": {
-			"type": "bar",
-			"tooltip": @{options.tooltip.value},
-			"color": @{options.bar_color.value}
-		},
-		"encoding": {
-			"x": {
-				"field": @{fields.dimension.name}, 
-				"type": "temporal", 
-				"axis": {
-					"labelAngle": -45,
-					"format": @{fields.dimension.format},
-					"formatType": "holisticsFormat"
-				}
-			},
-			"y": {
-				"field": @{fields.measure.name}, 
-				"type": "quantitative",
-				"axis": {
-					"format": @{fields.measure.format},
-					"formatType": "holisticsFormat"
+	  	"transform": [
+	    	{
+			"sort": [{"field": @{fields.dimension.name}}],
+			"window": [{"op": "average", "field": @{fields.measure.name}, "as": "avg"}],
+			"frame": [@{options.points_before.value}, @{options.points_after.value}]
+		}
+		],
+		"layer": [
+			{"mark": {
+				"type": "bar",
+				"tooltip": @{options.tooltip.value},
+				"color": @{options.bar_color.value}
+				},
+			"encoding": {
+				"x": {
+					"field": @{fields.dimension.name}, 
+					"type": "temporal", 
+					"axis": {
+						"labelAngle": -45,
+						"format": @{fields.dimension.format},
+						"formatType": "holisticsFormat"
+					}
+				},
+				"y": {
+					"field": @{fields.measure.name}, 
+					"type": "quantitative",
+					"axis": {
+						"format": @{fields.measure.format},
+						"formatType": "holisticsFormat"
+					}
 				}
 			}
-		}
-  },
-    {"mark": {
-			"type": "line",
-			"tooltip": @{options.tooltip.value},
-			"color": @{options.line_color.value}
-		},
-  "encoding": {
-    "x": {"field": @{fields.dimension.name}, "type": "nominal"},
-    "y": {"field": "avg", "type": "quantitative"}
-  }
-  
-  }
-  ]};;
+	  		},
+	    		{"mark": {
+				"type": "line",
+				"tooltip": @{options.tooltip.value},
+				"color": @{options.line_color.value}
+			},
+	  		"encoding": {
+	    			"x": {"field": @{fields.dimension.name}, "type": "nominal"},
+	    			"y": {"field": "avg", "type": "quantitative"}
+	  		}
+  			}
+  		]
+	};;
 }
 
 ```
