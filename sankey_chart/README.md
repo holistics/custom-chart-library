@@ -31,7 +31,7 @@ CustomChart {
       data_type: "string"
     }
     field volume {
-      type: "dimension"
+      type: "measure"
       label: "Volume for link from Source-Target"
       data_type: "number"
     }
