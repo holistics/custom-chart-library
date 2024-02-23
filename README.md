@@ -3,7 +3,7 @@
 > [!NOTE]
 > We welcome contributors to this library!
 > 
-> Don't forget to share your chart templates on [Holistics Community](https://community.holistics.io/) so other community members can see it.
+> Don't forget to share your templates on [Holistics Community](https://community.holistics.io/) so more people can see it, too.
 
 A collection of Holistics Custom Charts Templates
 
