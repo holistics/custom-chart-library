@@ -5,6 +5,11 @@ A collection of Holistics Custom Charts Templates
 ![](https://i.imgur.com/fRiA1Vp.png)
 
 
+> [!NOTE]
+> We welcome contributors to this library!
+> 
+> Don't forget to share your chart templates on [Holistics Community](https://community.holistics.io/) so other community members can see it.
+
 ## What is Custom Chart?
 
 Custom Chart is a feature in Holistics that allows you to define new chart types that accommodate your business needs. 
