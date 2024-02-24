@@ -15,41 +15,54 @@ CustomChart {
   fields {
     field x_axis {
       type: "dimension"
-      label: "Categorical"
+      label: "X axis"
     }
 
     field y_axis {
       type: "dimension"
-      label: "Numerical"
+      label: "Y axis"
     }
+
+    field size {
+      type: "dimension"
+      label: "Size"
+    }
+
   }
 
   template: @vgl {
     "data": {
       "values": @{values}
     },
+    "transform": [
+      {"filter": "datum.Entity !== 'All natural disasters'"}
+    ],
     "mark": {
-      "type": "boxplot",
-      "extent": "min-max",
-      "size": 50
+      "type": "circle",
+      "opacity": 0.8,
+      "stroke": "black",
+      "strokeWidth": 1
     },
     "encoding": {
       "x": {
-        "field": @{fields.x_axis.name}, 
-        "type": "nominal",
-        "axis": {
-          "labelAngle": 0
-        }
-        },
-      
-      "color": {"field": @{fields.x_axis.name}, "type": "nominal", "legend": null},
+        "field": @{fields.x_axis.name},
+        "type": "temporal",
+        "axis": {"grid": false}
+      },
       "y": {
         "field": @{fields.y_axis.name},
+        "type": "nominal",
+        "axis": {"title": ""}
+      },
+      "size": {
+        "field": @{fields.size.name},
         "type": "quantitative",
-        "scale": {"zero": false}
-      }
-   } 
+        "title": "Annual Global Deaths",
+        "legend": {"clipHeight": 30},
+        "scale": {"rangeMax": 5000}
+      },
+      "color": {"field": @{fields.y_axis.name}, "type": "nominal", "legend": null}
+    }
   };;
-
 }
 ```
