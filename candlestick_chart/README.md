@@ -6,8 +6,7 @@ From this dataset:
 ![illustration](https://user-images.githubusercontent.com/27631976/188304837-bcec6b16-f358-471f-b8a6-760115438953.png)
 
 We will define a Candlestick/OHLC Custom Chart that looks like this:
-![illustration](https://user-images.githubusercontent.com/27631976/188304845-1f1761a0-e656-4539-b9d9-d9cd4c2a6a09.png)
-
+![illustration](https://github.com/holistics/custom-chart-library/assets/106363759/44ef7d51-f366-434d-b1bf-a8b753746994)
 
 ## Mechanism
 
@@ -20,6 +19,7 @@ To learn more about layer property, see: https://vega.github.io/vega-lite/docs/l
 ## Full-code
 
 ```javascript
+
 
 CustomChart {
   fields {
@@ -44,57 +44,78 @@ CustomChart {
       label: "Close price"
     }
   }
+
+  	options {
+		option tooltip {
+			type: 'toggle'
+			label: 'Show tooltip'
+			default_value: true
+		}
+		option green_candle {
+			type: 'color-picker'
+			label: 'Green candlestick'
+			default_value: 'green'
+		}
+    option red_candle {
+			type: 'color-picker'
+			label: 'Red candlestick'
+			default_value: 'red'
+		}
+	}
+
   template: @vgl
   {
     "data": {
       "values": @{values}
     },
-		"layer": [
-			{
-				"mark": "rule",
-				"encoding": {
-					"y": {
-						"field": @{fields.low.name}
-					},
-					"y2": {
-						"field": @{fields.high.name}
-					}
-				}
-			},
-			{
-				"mark": "bar",
-				"encoding": {
-					"y": {
-						"field": @{fields.open.name}
-					},
-					"y2": {
-						"field": @{fields.close.name}
-					}
-				}
-			}
-		],
-		"encoding": {
-			"x": {
-				"axis": {
-					"title": "Date in 2009",
-					"format": "%m/%d",
-					"labelAngle": -45
-				},
-				"type": "temporal",
-				"field": @{fields.date.name},
-				"title": "Date in 2009"
-			},
-			"y": {
-				"axis": {
-					"title": "Price"
-				},
-				"type": "quantitative",
-				"scale": {
-					"zero": false
-				}
-			},
-		}
-	};;
+    "layer": [
+      {
+        "mark": "rule",
+        "encoding": {
+          "y": {"field": @{fields.low.name}},
+          "y2": {"field": @{fields.high.name}}
+        }
+      },
+      {
+        "mark": {
+          "type": "bar",
+          "tooltip": @{options.tooltip.value}
+        },
+        "encoding": {
+          "y": {"field": @{fields.open.name}},
+          "y2": {"field": @{fields.close.name}}
+        }
+      }
+    ],
+    "encoding": {
+      "x": {
+        "axis": {
+          "title": "Date in 2009",
+          "format": "%m/%d",
+          "labelAngle": -45
+        },
+        "type": "temporal",
+        "field": @{fields.date.name},
+        "title": "Date in 2009"
+      },
+      "y": {
+        "axis": {
+          "title": "Price"
+        },
+        "type": "quantitative",
+        "scale": {
+          "zero": false
+        }
+      },
+      "color": {
+        "condition": {
+          "test": "datum.@{fields.open.name} < datum.@{fields.close.name}",
+          "value": @{options.green_candle.value}
+        },
+        "value": @{options.red_candle.value}
+      }
+    }
+  };;
 }
 
 ```
