@@ -34,9 +34,6 @@ CustomChart {
     "data": {
       "values": @{values}
     },
-    "transform": [
-      {"filter": "datum.Entity !== 'All natural disasters'"}
-    ],
     "mark": {
       "type": "circle",
       "opacity": 0.8,
