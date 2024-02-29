@@ -1,0 +1,119 @@
+// Generate comparative insights across segments
+// 1) Select a row dimension to categorize data into segments,
+// 2) Choose an x-axis dimension (may not work with time yet)
+// trellis/facet chart like: https://vega.github.io/vega-lite/docs/facet.html
+
+CustomChart {
+  fields {
+    // row
+    field row {
+      type: "dimension"
+      label: "Facet to group by"
+    }
+
+    // x axis
+    field x {
+      type: "dimension"
+      label: "X-axis (categorical) "
+    }
+
+    // measure
+    field measure {
+      type: "measure"
+      label: "Metric to measure"
+    }
+  }
+  options {
+    option x_title {
+      label: "X axis title"
+      type: "input"
+      default_value: ""
+    }
+
+    option row_sort {
+      label: "Row Sort perference"
+      type: "select"
+      options: ['ascending','descending']
+      default_value: 'ascending'
+    }
+
+    option row_height {
+      label: "Height of the row"
+      type: "number-input"
+      default_value: '25'
+    }
+
+    option fill_color {
+      label: 'Fill Color'
+      type: 'color-picker'
+      default_value: '#aaa'
+    }
+
+    option y_axis_label {
+      label: 'Show Y axis label'
+      type: 'toggle'
+      default_value: true
+    }
+  }
+
+  template: @vgl {
+
+    "data": {:
+      "values": @{values}
+    },
+
+    "spacing": {"row": 1},
+    "facet": {
+      "row": {
+        "field": @{fields.row.name},
+        "type": "nominal",
+        "sort": @{options.row_sort.value},
+        "header": {
+          "labelAngle": 0,
+          //"labelPadding": 2,
+          //"titlePadding": -4,
+          "labelAlign": "left",
+          //"labelExpr": "hours(datum.value) == 0 ? 'Midnight' : hours(datum.value) == 12 ? 'Noon' : timeFormat(datum.value, '%I:%M %p')"
+        }
+      }
+    },
+    "spec": {
+      //"width": 800,
+      "height": @{options.row_height.value},
+      "view": {"stroke": null},
+      "mark": "bar",
+      "encoding": {
+        "x": {
+          "field": @{fields.x.name},
+          "title": @{options.x_title.value},
+          "type": "ordinal"
+        },
+        "y": {
+          "field": @{fields.measure.name},
+          "type": "quantitative",
+          //"aggregate": "mean",
+          "scale": {"zero": false},
+          "axis": {
+            "title": null,
+            "labels": false,
+            "ticks": false
+          }
+        },
+        "color": {
+          "value": @{options.fill_color.value}
+        },
+        "tooltip": [
+          {"field": "@{fields.row.name}", "title": "@{fields.row.name}"},
+          {"field": "@{fields.x.name}", "title": "@{fields.x.name}"},
+          {"field": "@{fields.measure.name}", "title": "@{fields.measure.name}", "type": "quantitative"}
+        ]
+      }
+    },
+    "config": {
+      "axis": {
+        "grid": false,
+        "domain": false
+      }
+    }
+  };;
+}
