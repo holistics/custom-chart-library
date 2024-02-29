@@ -52,9 +52,9 @@ CustomChart {
       default_value: 'white'
     }
 
-    option outlier_scale {
+    option extent {
       type: 'input'
-      label: 'Outlier detetction scale (..can accept "min-max" as input)'
+      label: 'Outlier detetction scale (may use "min-max" as input)'
       default_value: 1.5
     }
 
@@ -73,7 +73,7 @@ CustomChart {
 
     "mark": {
       "type": "boxplot",
-      "extent": @{options.outlier_scale.value},
+      "extent": @{options.extent.value},
       "median": {
         "color": @{options.median_color.value}
         },
