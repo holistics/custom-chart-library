@@ -38,3 +38,5 @@ Offering Box Plots that render the bars either vertically or horizonally. For ea
 ## Box Plot Vertical
 
 ![boxplot-vertical](https://github.com/stonematt/i/assets/2821486/c594ff96-dff4-45f3-a429-858020c11e04)
+
+> Inspired by [Video Tutorial](https://docs.holistics.io/docs/charts/custom-charts#video-tutorial)
