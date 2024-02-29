@@ -1,5 +1,5 @@
 // Box Plot with horizontal boxes. Select a categorical and quantitative items
-// control tool tips, box color, outliers, extent and font style
+// control colors, outliers, extent and font style
 
 CustomChart {
   fields {
@@ -15,12 +15,6 @@ CustomChart {
   }
 
   options {
-    option tooltip {
-        type: 'toggle'
-        label: 'Show tooltip'
-        default_value: true
-    }
-
     option show_outliers {
         type: 'toggle'
         label: 'Show outliers'
@@ -80,7 +74,6 @@ CustomChart {
     "mark": {
       "type": "boxplot",
       "extent": @{options.outlier_scale.value},
-      "tooltip": @{options.tooltip.value},
       "median": {
         "color": @{options.median_color.value}
         },
@@ -92,15 +85,19 @@ CustomChart {
           "field": @{fields.measure.name},
           "type": "quantitative"
       },
-      "color": {
-          "value": @{options.box_color.value}
-      },
-      "size": {"value": @{options.box_size.value}},
       "y": {
         "field": @{fields.group.name},
         "type": "nominal",
         "scale": {"zero": false}
-      }
+      },
+      "tooltip": {
+        "field": @{fields.measure.name},
+        "type": "quantitative"
+      },
+      "color": {
+          "value": @{options.box_color.value}
+      },
+      "size": {"value": @{options.box_size.value}},
     }
   };;
 }
