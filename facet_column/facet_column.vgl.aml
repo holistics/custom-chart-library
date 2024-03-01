@@ -42,6 +42,12 @@ CustomChart {
       default_value: '25'
     }
 
+    option row_width {
+      label: "Width of the chart"
+      type: "number-input"
+      default_value: '800'
+    }
+
     option row_space {
       label: "Space between rows"
       type: "number-input"
@@ -74,24 +80,29 @@ CustomChart {
       }
     ],
 
-    "spacing": {"row": @{options.row_space.value}},
-
     "facet": {
       "row": {
         "field": @{fields.row.name},
         "type": "nominal",
         "sort": @{options.row_sort.value},
         "header": {
+          "title": "@{fields.row.name} (@{fields.measure.name})",
           "labelAngle": 0,
           "labelAlign": "left"
         }
       }
     },
 
+    "spacing": {"row": @{options.row_space.value}},
+
+//    "height": "container",
+//    "width": "container",
+
     "spec": {
       "layer": [
         {
           "height": @{options.row_height.value},
+          "width": @{options.row_width.value},
           "mark": "bar",
           "encoding": {
             "x": {
