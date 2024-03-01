@@ -1,0 +1,103 @@
+// Box Plot with vertical boxes. Select a categorical and quantitative items
+// control colors, outliers, extent and font style
+
+CustomChart {
+  fields {
+    field group {                    // this is to define to holistics the first field input
+      type: "dimension"
+      label: "Group by category"
+    }
+    field measure {                  // this is to define to holistics the second field input
+      type: "dimension"
+      label: "Value to analyze"
+      data_type: "number"
+    }
+  }
+
+  options {
+    option show_outliers {
+        type: 'toggle'
+        label: 'Show outliers'
+        default_value: false
+    }
+
+    option box_size {
+      type: 'input'
+      label: 'Box Size'
+      default_value: 90
+    }
+
+    option font {
+      type: 'select'
+      label: 'Chart Labels Font'
+      options: ['monospace', 'sans-serif', 'serif', 'sans']
+      default_value: 'sans-serif'
+    }
+
+    option box_color {
+      type: 'color-picker'
+      label: 'Box Color'
+      default_value: '#0091B3'
+    }
+
+    option median_color {
+      type: 'color-picker'
+      label: 'Median Color'
+      default_value: 'red'
+    }
+
+    option bckgrnd {
+      type: 'color-picker'
+      label: 'Chart Background Color'
+      default_value: 'white'
+    }
+
+    option extent {
+      type: 'input'
+      label: 'Outlier detetction scale (may use "min-max" as input)'
+      default_value: 1.5
+    }
+
+  }
+
+  template: @vgl {
+    "data": {
+            "values": @{values}
+    },
+
+    "config": {
+      "font": @{options.font.value},
+      "background": @{options.bckgrnd.value},
+      "autosize": {"type": "fit"}
+    },
+
+    "mark": {
+      "type": "boxplot",
+      "extent": @{options.extent.value},
+      "median": {
+        "color": @{options.median_color.value}
+        },
+      "outliers": @{options.show_outliers.value},
+      "ticks": true
+    },
+    "encoding": {
+      "x": {
+          "field": @{fields.group.name},
+          "type": "nominal"
+      },
+      "y": {
+        "field": @{fields.measure.name},
+        "type": "quantitative",
+        "scale": {"zero": false}
+      },
+      "tooltip": {
+        "field": @{fields.measure.name},
+        "type": "quantitative"
+      },
+      "color": {
+          "value": @{options.box_color.value}
+      },
+      "size": {"value": @{options.box_size.value}}
+    }
+  };;
+}
