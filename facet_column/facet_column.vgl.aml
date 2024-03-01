@@ -1,0 +1,144 @@
+// Generate comparative insights across segments
+// 1) Select a row dimension to categorize data into segments,
+// 2) Choose an x-axis dimension (may not work with time yet)
+
+CustomChart {
+  fields {
+    // row
+    field row {
+      type: "dimension"
+      label: "Facet to group into rows"
+    }
+
+    // x axis
+    field x {
+      type: "dimension"
+      label: "X-axis (categorical) "
+    }
+
+    // measure
+    field measure {
+      type: "measure"
+      label: "Metric to measure"
+    }
+  }
+  options {
+    option show_y_axis_label {
+      label: 'Show Y axis label'
+      type: 'toggle'
+      default_value: true
+    }
+
+    option row_sort {
+      label: "Row Sort perference"
+      type: "select"
+      options: ['ascending','descending']
+      default_value: 'ascending'
+    }
+
+    option row_height {
+      label: "Height of the row"
+      type: "number-input"
+      default_value: '25'
+    }
+
+    option row_width {
+      label: "Width of the chart"
+      type: "number-input"
+      default_value: '800'
+    }
+
+    option row_space {
+      label: "Space between rows"
+      type: "number-input"
+      default_value: '25'
+    }
+
+    option fill_color {
+      label: 'Fill Color'
+      type: 'color-picker'
+      default_value: '#aaa'
+    }
+
+
+  }
+
+  template: @vgl {
+    "data": { "values": @{values}},
+
+    "transform": [
+      {
+        "window": [
+          {
+            "op": "mean",
+            "field": @{fields.measure.name},
+            "as": "meanValue"
+          }
+        ],
+        "frame": [null, null],
+        "groupby": [@{fields.row.name}]
+      }
+    ],
+
+    "facet": {
+      "row": {
+        "field": @{fields.row.name},
+        "type": "nominal",
+        "sort": @{options.row_sort.value},
+        "header": {
+          "title": "@{fields.row.name} (@{fields.measure.name})",
+          "labelAngle": 0,
+          "labelAlign": "left"
+        }
+      }
+    },
+
+    "spacing": {"row": @{options.row_space.value}},
+
+//    "height": "container",
+//    "width": "container",
+
+    "spec": {
+      "layer": [
+        {
+          "height": @{options.row_height.value},
+          "width": @{options.row_width.value},
+          "mark": "bar",
+          "encoding": {
+            "x": {
+              "field": @{fields.x.name},
+              "title": @{fields.x.name},
+              "type": "ordinal"
+            },
+            "y": {
+              "field": @{fields.measure.name},
+              "type": "quantitative",
+              "scale": {"zero": false},
+              "axis": {
+                "title": null,
+                "labels": @{options.show_y_axis_label.value},
+                "ticks": false,
+                "format": "~s"
+              }
+            },
+            "color": {
+              "value": @{options.fill_color.value}
+            },
+            "tooltip": [
+              {"field": @{fields.row.name}, "title": @{fields.row.name}},
+              {"field": @{fields.x.name}, "title": @{fields.x.name}},
+              {"field": @{fields.measure.name}, "title": @{fields.measure.name}, "type": "quantitative"},
+              {"field": "meanValue", "title": "Mean for row", "type": "quantitative"}
+            ]
+          }
+        }
+      ]
+    },
+    "config": {
+      "axis": {
+        "grid": false,
+        "domain": false
+      }
+    }
+  };;
+}
