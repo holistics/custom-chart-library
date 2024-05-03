@@ -6,7 +6,7 @@
 
 ## Use-case
 
-When you want to analyze a metric by customer concentration, it might be more meaningful to order such segments by their size, instead of by alphabetical order.
+When you are analyzing a metric by customer concentration, it might be more meaningful to order such segments by their **size**, instead of by **alphabetical order**.
 
 ## Chart code
 
