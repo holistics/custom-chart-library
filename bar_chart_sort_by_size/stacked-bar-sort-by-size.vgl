@@ -1,0 +1,88 @@
+CustomChart {
+  fields {
+		field dim {
+			label: 'Dimension',
+			type: 'dimension'
+		},
+		field legend {
+			label: 'Legend'
+			type: 'dimension'
+		}
+		field value {
+			label: 'Value'
+			type: 'measure'
+		}
+  }
+  options {
+		option bar_height {
+			label: 'Bar Height'
+			type: 'number-input'
+			default_value: 200
+		}
+    option sort_order {
+			label: 'Sort order'
+			type: 'select'
+			options: ['ascending', 'descending']
+			default_value: 'ascending'
+		}
+  }
+  template: @vgl {
+		"$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+		"data": {
+			"values": @{values}
+		},
+		"transform": [
+			{
+				"calculate": "if('@{options.sort_order.value}' === 'descending', 0-datum['@{fields.value.name}'], datum['@{fields.value.name}'])",
+				"as": "order_value"
+			}
+		],
+		"mark": {
+			"type": "bar",
+			"height": @{options.bar_height.value}
+		},
+		"encoding": {
+			"color": {
+				"field": @{fields.legend.name},
+				"type": @{fields.legend.type},
+				"scale": {
+					"range": ["#255DD4", "#18A59E", "#07326C", "#AF7DED", "#A50E43", "#F2B602", "#E27712"]
+				}
+			},
+			"x": {
+				"field": @{fields.dim.name},
+				"type": "nominal",
+				"axis": {
+					"format": @{fields.dim.format},
+          "formatType": "holisticsFormat",
+					"labelAngle": -45,
+				},
+			},
+			"y": {
+				"field": @{fields.value.name},
+				"type": @{fields.value.type},
+				"axis": {
+					"format": @{fields.value.format},
+          "formatType": "holisticsFormat",
+				},
+			},
+			"tooltip": [
+				{
+					"field": @{fields.legend.name},
+					"type": @{fields.legend.type}
+				},
+				{
+					"field": @{fields.value.name},
+					"type": @{fields.value.type},
+					"axis": {
+						"format": @{fields.value.format},
+						"formatType": "holisticsFormat",
+					}
+				}
+			],
+			"order": {
+				"field": "order_value"
+			}
+		}
+  };;
+}
