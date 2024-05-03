@@ -10,4 +10,4 @@ When you want to analyze a metric by customer concentration, it might be more me
 
 ## Chart code
 
-[See here]().
+[See here](https://github.com/holistics/custom-chart-library/blob/main/stacked_bar_chart_sort_by_size/stacked-bar-sort-by-size.vgl).
