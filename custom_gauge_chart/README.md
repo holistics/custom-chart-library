@@ -4,6 +4,7 @@
 
 # Code
 ---
+```
 CustomChart {
   fields {
     field current {
@@ -174,3 +175,4 @@ CustomChart {
     "background": "transparent",
   };;
 }
+```
