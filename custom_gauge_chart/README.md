@@ -1,5 +1,6 @@
 # Custom Gauge Chart
 ---
+![Custom Gauge Chart](https://github.com/truongthinhnguyen03/custom-chart-library/assets/121245100/428152b8-732a-4bca-9df7-236bb319cdf4)
 
 
 # Code
