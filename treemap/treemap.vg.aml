@@ -1,0 +1,164 @@
+CustomChart {
+  fields {
+    field dimension {
+      label: 'Label'
+      type: 'dimension'
+    }
+    field measure {
+      label: 'Value',
+      type: 'measure'
+    }
+  }
+  options {
+    option fill_color {
+      label: 'Fill color'
+      type: 'color-picker'
+      default_value: '#255DD4'
+    }
+    option text_color {
+      label: 'Text color'
+      type: 'color-picker'
+      default_value: 'white'
+    }
+    option layout_method {
+      label: 'Treemap method'
+      type: 'select'
+      default_value: 'squarify'
+      options: ['binary', 'squarify', 'dice', 'resquarify', 'slice', 'slicedice']
+    }
+  }
+  template: @vg {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "description": "A flat treemap layout for hierarchical data.",
+    "signals": [
+      {
+        "name": "width",
+        "init": "containerSize()[0] - 5",
+        "on": [{ "events": "window:resize", "update": "containerSize()[0] - 5" }]
+      },
+      {
+        "name": "height",
+        "init": "containerSize()[1] - 5",
+        "on": [{ "events": "window:resize", "update": "containerSize()[1] - 5" }]
+      }
+    ],
+    "data": [
+      {
+        "name": "tree",
+        "values": @{values},
+        "transform": [
+          {
+            "type": "filter",
+            "expr": "datum['@{fields.measure.name}'] !== null & datum['@{fields.measure.name}'] > 0"
+          },
+          {
+            "type": "joinaggregate",
+            "ops": ["sum"],
+            "fields": [@{fields.measure.name}],
+            "as": ["_total_size"]
+          },
+          {
+            "type": "joinaggregate",
+            "ops": ["max"],
+            "fields": [@{fields.measure.name}],
+            "as": ["_max_size"]
+          },
+          {
+            "type": "formula",
+            "as": "_percentage",
+            "expr": "round(datum['@{fields.measure.name}'] / datum._total_size * 10000)/100 + '%'"
+          },
+          {
+            "type": "formula",
+            "as": "_opacity",
+            "expr": "datum['@{fields.measure.name}'] / datum._max_size"
+          },
+          {"type": "nest" },
+          {
+            "type": "treemap",
+            "field": @{fields.measure.name},
+            "sort": {"field": @{fields.measure.name}},
+            "round": true,
+            "method": @{options.layout_method.value},
+            "size": [{"signal": "width"}, {"signal": "height"}]
+          }
+        ]
+      }
+    ],
+    "scales": [
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": {"data": "tree", "field": @{fields.dimension.name}},
+        "range": [@{options.fill_color.value}]
+      }
+    ],
+    "marks": [
+      {
+        "type": "rect",
+        "from": {"data": "tree"},
+        "interactive": true,
+        "encode": {
+          "enter": {
+            "stroke": {"value": "white"},
+            "strokeWidth": {"value": 2},
+            "fill": {"scale": "color", "field": @{fields.dimension.name}},
+            "tooltip": {
+              "signal": "datum['@{fields.dimension.name}'] + ': ' + datum['@{fields.measure.name}'] + ' (' + datum._percentage + ')'"
+            }
+          },
+          "update": {
+            "x": {"field": "x0"},
+            "y": {"field": "y0"},
+            "x2": {"field": "x1"},
+            "y2": {"field": "y1"},
+            "opacity": {"field": "_opacity"}
+          },
+          "hover": {"opacity": {"value": 1}}
+        }
+      },
+      {
+        "type": "text",
+        "from": {"data": "tree"},
+        "interactive": false,
+        "encode": {
+          "enter": {
+            "font": { "value": "Inter" },
+            "align": {"value": "center"},
+            "baseline": {"value": "middle"},
+            "fill": {"value": @{options.text_color.value}},
+            "text": {"field": @{fields.dimension.name}}
+          },
+          "update": {
+            "x": {"signal": "0.5 * (datum.x0 + datum.x1)"},
+            "y": {"signal": "0.5 * (datum.y0 + datum.y1 - 15)"}
+          }
+        }
+      },
+      {
+        "type": "text",
+        "from": {"data": "tree"},
+        "interactive": false,
+        "encode": {
+          "enter": {
+            "font": { "value": "Inter" },
+            "fontSize": {"value": 13},
+            "fontWeight": {"value": 600},
+            "baseline": {"value": "top"},
+            "fill": {"value": @{options.text_color.value}},
+            "text": {"field": "_percentage"},
+          },
+          "update": {
+            "x": {"signal": "datum.x0 + 5"},
+            "y": {"signal": "datum.y0 + 10"}
+          }
+        }
+      }
+    ],
+    "params": [
+      {
+        "bind": "..."
+      }
+    ]
+  };;
+}
