@@ -20,4 +20,4 @@ A custom chart ultilizing [Vega treemap transform](https://vega.github.io/vega/d
   * slicedice
 
 ## Code
-[treemap.vl.aml]('./treemap.vg.aml')
+[treemap.vl.aml](treemap.vg.aml)
