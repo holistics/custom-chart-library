@@ -11,6 +11,7 @@ A custom chart ultilizing [Vega treemap transform](https://vega.github.io/vega/d
 ## Options
 * Fill color (color-picker): fill color of the rects
 * Text color (color-picker): color of the text
+* Text length limit (number-input): The max length (px) of labels. Labels longer than this limit will be truncated.
 * Treemap method (select): the method to calculate treemap layout, including
   * binary
   * squarify
