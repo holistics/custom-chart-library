@@ -2,7 +2,7 @@
 A custom chart based on [Vega Packed Bubble Chart Example](https://vega.github.io/vega/examples/packed-bubble-chart/)
 
 ## Example
-
+![image](https://github.com/holistics/custom-chart-library/assets/26102306/9ee8efb0-e20a-49f0-863f-0368fa0e9d2b)
 
 ## Fields
 * Category (dimension)
