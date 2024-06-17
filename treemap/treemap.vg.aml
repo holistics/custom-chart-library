@@ -20,6 +20,11 @@ CustomChart {
       type: 'color-picker'
       default_value: 'white'
     }
+    option text_length_limit {
+      label: 'Text length limit (px)'
+      type: 'number-input'
+      default_value: 200
+    }
     option layout_method {
       label: 'Treemap method'
       type: 'select'
@@ -127,7 +132,8 @@ CustomChart {
             "align": {"value": "center"},
             "baseline": {"value": "middle"},
             "fill": {"value": @{options.text_color.value}},
-            "text": {"field": @{fields.dimension.name}}
+            "text": {"field": @{fields.dimension.name}},
+            "limit": {"value": @{options.text_length_limit.value}}
           },
           "update": {
             "x": {"signal": "0.5 * (datum.x0 + datum.x1)"},
