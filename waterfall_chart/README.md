@@ -15,6 +15,9 @@ CustomChart {
     field label {
       type: 'dimension'
     }
+    field label_sorter {
+      type: 'dimension'
+    }
   }
   options {
     // INSERT OPTION DEFINITION HERE
@@ -36,8 +39,32 @@ CustomChart {
         "calculate": "datum['@{fields.label.name}']",
         "as": "label"
       },
-      {"window": [{"op": "sum", "field": "amount", "as": "sum"}]},
-      {"window": [{"op": "lead", "field": "label", "as": "lead"}]},
+      {
+        "calculate": "datum['@{fields.label_sorter.name}']",
+        "as": "label_sorter"
+      },
+      {
+        "window": [{
+          "op": "sum", 
+          "field": "amount", 
+          "as": "sum"
+         }],
+        "sort": [{
+          "field": "label_sorter", 
+          "order": "ascending"
+         }]
+      },
+      {
+        "window": [{
+          "op": "lead", 
+          "field": "label",
+          "as": "lead"
+          }],
+        "sort": [{
+          "field": "label_sorter", 
+          "order": "ascending"
+          }]
+      },
       {
         "calculate": "datum.lead === null ? datum.label : datum.lead",
         "as": "lead"
@@ -68,7 +95,7 @@ CustomChart {
       "x": {
         "field": "label",
         "type": "ordinal",
-        "sort": null,
+        "sort": {"field": "label_sorter", "order": "ascending"},
         "axis": {"labelAngle": 0, "title": "Months"}
       }
     },
