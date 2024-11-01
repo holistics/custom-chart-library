@@ -25,7 +25,7 @@ CustomChart {
   fields {
     field date {
       type: "dimension"
-      label: "Pick a date field"
+      label: "Date field"
     }
     field low {
       type: "dimension"
@@ -90,13 +90,11 @@ CustomChart {
     "encoding": {
       "x": {
         "axis": {
-          "title": "Date in 2009",
           "format": "%m/%d",
           "labelAngle": -45
         },
         "type": "temporal",
         "field": @{fields.date.name},
-        "title": "Date in 2009"
       },
       "y": {
         "axis": {
