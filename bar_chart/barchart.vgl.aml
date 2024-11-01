@@ -20,7 +20,7 @@ CustomChart {
 		option bar_color {
 			type: 'color-picker'
 			label: 'Bar color'
-			default_value: '#00FFFF'
+			default_value: '#3b60d2'
 		}
 	}
 
@@ -36,9 +36,7 @@ CustomChart {
 		"encoding": {
 			"x": {
 				"field": @{fields.dimension.name}, 
-				"type": "temporal", 
 				"axis": {
-					"labelAngle": -45,
 					"format": @{fields.dimension.format},
 					"formatType": "holisticsFormat"
 				}
@@ -50,6 +48,31 @@ CustomChart {
 					"format": @{fields.measure.format},
 					"formatType": "holisticsFormat"
 				}
+			}
+		},
+		"config": {
+			"font": "Inter",
+			"view": {
+				"stroke": "transparent"
+			},
+			"axis": {
+				"title": null,
+				"labelFontSize": 11,
+				"labelFontWeight": 500,
+				"labelColor": "#858B9E",
+				"labelPadding": 10,
+				"gridColor": "#F4F6F8",
+				"gridDash": [8,3]
+			},
+			"axisX": {
+				"tickSize": 7.5,
+				"tickColor": "#bec1cb",
+				"domainColor": "#bec1cb",
+				"domainWidth": 1
+			},
+			"axisY": {
+				"ticks": false,
+				"domain": false
 			}
 		}
 	};;
