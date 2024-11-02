@@ -1,6 +1,7 @@
 # Custom Gauge Chart
 ---
-![Custom Gauge Chart](https://github.com/truongthinhnguyen03/custom-chart-library/assets/121245100/428152b8-732a-4bca-9df7-236bb319cdf4)
+
+![Simple Gauge Chart](https://cdn.holistics.io/product/reporting-custom-chart/simple-gauge-chart-20241102-375.png)
 
 
 # Code
@@ -8,172 +9,222 @@
 ```
 CustomChart {
   fields {
-    field current {
+    field value {
       type: "measure"
-      label: "Current Value"
+      label: "Value"
     }
-    field max {
+    field max_value {
       type: "measure"
       label: "Max Value"
     }
   }
 
   options {
-    option ring_max {
-      type: "number-input"
-      label: "Ring Max"
-      default_value: 120
-    }
-    option ring_width {
-      type: "number-input"
-      label: "Ring Width"
-      default_value: 25
-    }
-    option ring_gap {
-      type: "number-input"
-      label: "Ring Gap"
-      default_value: 5
-    }
-    option ring_corner {
-      type: "number-input"
-      label: "Ring Corner"
-      default_value: 10
-    }
-    option label_size {
-      type: "number-input"
-      label: "Label Size"
-      default_value: 48
-    }
-    option label_color {
+    option background_color {
       type: "color-picker"
-      label: "Label Color"
-      default_value: "#53586A"
+      label: "Background Color"
+      default_value: "#cbd1d6"
     }
-    option ring1_color {
+    option value_color {
       type: "color-picker"
-      label: "Ring Color"
-      default_value: "#255DD4"
+      label: "Value Color"
+      default_value: "black"
+    }
+    option needle_color {
+      type: "color-picker"
+      label: "Needle Color" 
+      default_value: "black"
+    }
+    option needleScale {
+      label: 'Needle Scaling Factor'
+      type: 'number-input'
+      default_value: 0.8
+    }
+    option showLabels {
+      label: 'Show Labels'
+      type: 'toggle'
+      default_value: true
+    }
+    option showTicks {
+      label: 'Show Ticks'
+      type: 'toggle'
+      default_value: true
+    }
+    option tickGaps {
+      label: 'Tick Gaps'
+      type: 'number-input'
+      default_value: 0.25
     }
   }
-  
-  template: @vg {
-    "data": {
-      "name": "dataset",
-      "values": @{values}
+  template: @vgl {
+    "config": {
+      "padding": {"left": 0, "top": 0, "right": 0, "bottom": 0},
+      "autosize": "fit",
+      "view": {
+        "stroke": "transparent"
+      },
+      "font": "Inter"
     },
-    "transform": [
-      {"calculate": "datum['@{fields.current.name}']", "as": "current" },
-      {"calculate": "datum['@{fields.max.name}']", "as": "max" },
-      {"calculate": "datum.current / datum.max", "as": "_percentage"},
-      {"calculate": "360 - ( 300 / 2 )", "as": "_arc_start_degrees"},
-      {"calculate": "0 + ( 300 / 2 )","as": "_arc_end_degrees"},
-      {"calculate": "2 * PI * ( datum['_arc_start_degrees'] - 360 ) / 360","as": "_arc_start_radians"},
-      {"calculate": "2 * PI * datum['_arc_end_degrees'] / 360","as": "_arc_end_radians"},
-      {"calculate": "datum['_arc_end_radians'] - datum['_arc_start_radians']","as": "_arc_total_radians"},
-      {"calculate": "datum['_arc_start_radians']","as": "_ring_start_radians"},
-      {"calculate": "datum['_arc_start_radians'] + ( datum['_arc_total_radians'] * datum['_percentage'] )","as": "_ring_end_radians"}
-    ],
     "params": [
-      {"name": "ring_max", "value": @{options.ring_max.value}},
-      {"name": "ring_width", "value": @{options.ring_width.value}},
-      {"name": "ring_gap", "value": @{options.ring_gap.value}},
-      {"name": "ring_corner", "value": @{options.ring_corner.value}},
-      {"name": "ring0_color", "value": "#FFFFFF"},
-      {"name": "ring1_color", "value": @{options.ring1_color.value}},
-      {"name": "label_color", "value": @{options.label_color.value}},
-      {"name": "ring_background_opacity", "value": 0.3},
-      {"name": "ring0_percent", "value": 100},
-      {"name": "ring0_outer", "expr": "ring_max+2"},
-      {"name": "ring0_inner", "expr": "ring_max+1"},
-      {"name": "ring1_outer", "expr": "ring0_inner-ring_gap"},
-      {"name": "ring1_inner", "expr": "ring1_outer-ring_width"},
-      {"name": "ring1_middle", "expr": "(ring1_outer+ring1_inner)/2"}
+      {"name": "centerX", "expr": "width/2"},
+      {"name": "centerY", "expr": "height/2 + outerRadius/4"},
+      {"name": "outerRadius", "expr": "radiusRef * 0.9"},
+      {"name": "radiusRef", "expr": "min(width/2, height/2)"},
+      {"name": "innerRadius", "expr": "outerRadius - outerRadius * 0.25"},
+      {"name": "fontFactor", "expr": "radiusRef/5"},
+      {"name": "backgroundColor", "value": @{options.background_color.value}},
+      {"name": "fillColor", "value": "#77A7FB"},
+      {"name": "needleColor", "value": @{options.needle_color.value}},
+      {"name": "needleSize", "expr": "innerRadius * @{options.needleScale.value}"}
+    ],
+    "data": {
+      "values": @{values}
+    }, 
+    "transform": [
+      {"calculate": "datum['@{fields.value.name}'] / datum['@{fields.max_value.name}']", "as": "percentage"},
+      {"calculate": "(datum.percentage) * (PI) + (-PI/2)", "as": "arcValue"}
     ],
     "layer": [
+      // Base Gauge
       {
-        "name": "FULL RING",
         "mark": {
           "type": "arc",
-          "radius": {
-            "expr": "ring1_outer"
-          },
-          "radius2": {
-            "expr": "ring1_inner"
-          },
-          "theta": {
-            "expr": "datum['_arc_start_radians']"
-          },
-          "theta2": {
-            "expr": "datum['_arc_end_radians']"
-          },
-          "cornerRadius": {
-            "expr": "ring_corner"
-          }
-        },
-        "encoding": {
-          "color": {
-            "value": {
-              "expr": "ring1_color"
-            }
-          },
-          "opacity": {
-            "value": {
-              "expr": "ring_background_opacity"
-            }
-          }
+          "name": "gauge",
+          "theta": {"expr": "-PI/2"},
+          "theta2": {"expr": "PI/2"},
+          "x": {"expr": "centerX"},
+          "y": {"expr": "centerY"},
+          "innerRadius": {"expr": "innerRadius"},
+          "outerRadius": {"expr": "outerRadius"},
+          "fill": {"expr": "backgroundColor"},
+          "stroke": {"expr": "backgroundColor"},
+          "strokeWidth": 1,
         }
       },
+      // Value Gauge
       {
-        "name": "RING",
         "mark": {
           "type": "arc",
-          "radius": {
-            "expr": "ring1_outer"
-          },
-          "radius2": {
-            "expr": "ring1_inner"
-          },
-          "theta": {
-            "expr": "datum['_ring_start_radians']"
-          },
-          "theta2": {
-            "expr": "datum['_ring_end_radians']"
-          },
-          "cornerRadius": {
-            "expr": "ring_corner"
-          }
-        },
-        "encoding": {
-          "color": {
-            "value": {
-              "expr": "ring1_color"
-            }
-          }
+          "name": "gauge",
+          "theta": {"expr": "-PI/2"},
+          "theta2": {"expr": "datum.arcValue"},
+          "x": {"expr": "centerX"},
+          "y": {"expr": "centerY"},
+          "innerRadius": {"expr": "innerRadius"},
+          "outerRadius": {"expr": "outerRadius"},
         }
       },
+      // Label
       {
-        "description": "VALUE",
-        "mark": {
-          "type": "text",
-          "fontSize": @{options.label_size.value},
-          "font": "Inter",
-          "fontWeight": 500          
-        },
+        "transform": [
+          {"calculate": "[0, datum['@{fields.max_value.name}']]", "as": "label"},
+          {"flatten": ["label"]},
+          {"calculate": "datum.label === 0 ? 0 : 1", "as": "angle"}
+        ],
         "encoding": {
           "text": {
-            "field": "_percentage",
-            "type": "quantitative",
-            "format": ".02%"
+            "field": "label",
+            "format": @{fields.max_value.format}, 
+            "formatType": "holisticsFormat"
           },
-          "color": {
-            "value": {
-              "expr": "label_color"
-            }
+          "theta": {
+            "field": "angle",
+            "type": "quantitative",
+            "scale": {"domain": [0, 1], "range": [{"expr": "-PI/2"}, {"expr": "PI/2"}]}
           }
+        },
+        "mark": {
+          "type": "text",
+          "fontSize": {"expr": "fontFactor/2"},
+          "fontWeight": 600,
+          "x": {"expr": "centerX"},
+          "y": {"expr": "centerY"},
+          "radius": {"expr": "outerRadius*1.05"},
+          "align": {"expr": "datum.angle === 0 ? 'right' : 'left'"},
+          "baseline": "alphabetic",
+          "opacity": {"expr": "@{options.showLabels.value} ? 1 : 0"}
+        }
+      },
+      // Main Value
+      {
+        "transform": [
+          {"calculate": "datum['@{fields.value.name}'] + ' (' + format(datum.percentage, '.0%') + ')'", "as": "mainValue"},
+          {
+            "calculate": "format(datum['@{fields.value.name}'] - datum['@{fields.target.name}'], ',.0f') + ' @{options.unit.value} (' + format(datum['@{fields.value.name}']/datum['@{fields.target.name}'] - 1, '.0%') + ')'",
+            "as": "reference"
+          }
+        ],
+        "encoding": {
+          "text": {
+            "field": "mainValue"
+          }
+        },
+        "mark": {
+          "type": "text",
+          "fontSize": {"expr": "fontFactor"},
+          "fontWeight": 600,
+          "x": {"expr": "centerX"},
+          "y": {"expr": "centerY + fontFactor*1.2"},
+          "baseline": "alphabetic",
+          "align": "center",
+          "color": @{options.value_color.value}
+        }
+      },
+      // Needle
+      {
+        "encoding": {
+          "angle": {
+            "field": "percentage",
+            "type": "quantitative",
+            "scale": {"domain": [0, 1], "range": [-90, 90]}
+          }
+        },
+        "mark": {
+          "type": "point",
+          "shape": {
+            "expr": "'M 5 -2 A 7 7 0 0 1 -10 -7 L 0 -' + toString(needleSize) + ' Z'"
+          },
+          "size": 4,
+          "opacity": 1,
+          "fill": {"expr": "needleColor"},
+          "stroke": {"expr": "needleColor"},
+          "x": {"expr": "centerX"},
+          "y": {"expr": "centerY"}
+        }
+      },
+      // Ticks
+      {
+        "data": {
+          "sequence": {
+            "as": "ticks",
+            "start": 0,
+            "stop": 1.01,
+            "step": @{options.tickGaps.value}
+          }
+        },
+        "encoding": {
+          "theta": {
+            "field": "ticks",
+            "type": "quantitative",
+            "scale": {"domain": [0, 1], "range": [{"expr": "-PI/2"}, {"expr": "PI/2"}]}
+          },
+          "theta2": {
+            "field": "ticks",
+            "type": "quantitative",
+            "scale": {"domain": [0, 1], "range": [{"expr": "-PI/2"}, {"expr": "PI/2"}]}
+          }
+        },
+        "mark": {
+          "type": "arc",
+          "outerRadius": {"expr": "outerRadius"},
+          "innerRadius": {"expr": "innerRadius"},
+          "x": {"expr": "centerX"},
+          "y": {"expr": "centerY"},
+          "stroke": {"expr": "needleColor"},
+          "opacity": {"expr": "@{options.showTicks.value} ? 1 : 0"}
         }
       }
-    ],
-    "background": "transparent",
+    ]
   };;
 }
 ```
