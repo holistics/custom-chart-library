@@ -21,6 +21,11 @@ CustomChart {
       label: "Value Color"
       default_value: "black"
     }
+    option fillColor {
+      type: "color-picker"
+      label: "Fill Color"
+      default_value: "#3b60d2"
+    }
     option needle_color {
       type: "color-picker"
       label: "Needle Color" 
@@ -58,13 +63,13 @@ CustomChart {
     },
     "params": [
       {"name": "centerX", "expr": "width/2"},
-      {"name": "centerY", "expr": "height/2 + outerRadius/4"},
-      {"name": "outerRadius", "expr": "radiusRef * 0.9"},
+      {"name": "centerY", "expr": "height/2 + outerRadius/2"},
+      {"name": "outerRadius", "expr": "radiusRef"},
       {"name": "radiusRef", "expr": "min(width/2, height/2)"},
       {"name": "innerRadius", "expr": "outerRadius - outerRadius * 0.25"},
       {"name": "fontFactor", "expr": "radiusRef/5"},
       {"name": "backgroundColor", "value": @{options.background_color.value}},
-      {"name": "fillColor", "value": "#77A7FB"},
+      {"name": "fillColor", "value": @{options.fillColor.value}},
       {"name": "needleColor", "value": @{options.needle_color.value}},
       {"name": "needleSize", "expr": "innerRadius * @{options.needleScale.value}"}
     ],
@@ -103,6 +108,7 @@ CustomChart {
           "y": {"expr": "centerY"},
           "innerRadius": {"expr": "innerRadius"},
           "outerRadius": {"expr": "outerRadius"},
+          "fill": {"expr": "fillColor"}
         }
       },
       // Label

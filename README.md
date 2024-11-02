@@ -50,7 +50,7 @@ A collection of Holistics Custom Charts Templates
         style="aspect-ratio: 3/2; object-fit: cover;">
 </a>
 <a href="/custom_gauge_chart/README.md">
-    <img src="https://cdn.holistics.io/product/reporting-custom-chart/custom_gauge_chart-20241031-355.png" 
+    <img src="https://cdn.holistics.io/product/reporting-custom-chart/gauge-chart-with-target-20241102-376.png" 
         alt="Custom Gauge Chart" 
         width="30%" 
         style="aspect-ratio: 3/2; object-fit: cover;">
