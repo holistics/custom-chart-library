@@ -22,7 +22,7 @@ CustomChart {
     }
 
     option box_size {
-      type: 'input'
+      type: 'number-input'
       label: 'Box Size'
       default_value: 90
     }
