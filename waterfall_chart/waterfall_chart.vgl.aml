@@ -1,12 +1,3 @@
-# Waterfall Chart
-
-Waterfall chart is useful for visualizing how intermediate values contribute to a total, particularly when showing the cumulative effect of sequential positive or negative changes. Common applications include financial statements, P&L analysis, budget variances, and sales funnels.
-
-<img alt="reporting-waterfall-chart-thumbnail" title="reporting-waterfall-chart-thumbnail" src="https://cdn.holistics.io/product/reporting-waterfall-chart-thumbnail-20250224-655.png" width="1326" height="746" />
-
-## Full code example
-
-```aml
 CustomChart {
   fields {
     field amount {
@@ -236,4 +227,3 @@ CustomChart {
     }
   };;
 }
-```
