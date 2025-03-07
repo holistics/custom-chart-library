@@ -40,9 +40,9 @@ CustomChart {
         },
         "encoding": {
           "x": {
-            "field": @{fields.x.name},
+            "field": @{fields.x_axis.name},
             "axis": {
-              "format": @{fields.x.format},
+              "format": @{fields.x_axis.format},
               "formatType": "holisticsFormat",
               "labelAngle": 45
             }
