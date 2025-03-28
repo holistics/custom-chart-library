@@ -1,0 +1,51 @@
+CustomChart {
+  fields {
+    field grain {
+      label: 'Dimension to count'
+      type: 'dimension'
+    }
+    field metric {
+      label: "Measure to bin",
+      type: 'dimension' // this type can be dimenson or measure depends on the type of field that you want to create the histogram on
+    }
+  }
+  options {
+    option max_bins {
+      type: 'number-input'
+      default_value: 20
+    } 
+  }
+  template: @vgl
+  {
+    "data": {"values": @{values}},
+    "transform": [
+      {
+        "bin": {"maxbins": @{options.max_bins.value}}, 
+        "field": @{fields.metric.name}, "as": "@{fields.metric.name} binned"
+      }
+    ],
+    "mark": {
+      "type": "bar",
+      "tooltip": true
+    },
+    "encoding": {
+      "x": {
+        "field": "@{fields.metric.name} binned", 
+        "type": "quantitative", 
+        "bin": {
+          "binned": true, 
+          //"step": 20 
+        }
+      },
+      "x2": {
+        "field": "@{fields.metric.name} binned_end"
+      },
+      "y": {
+        "aggregate": "count",
+        "title": "Count of @{fields.grain.name}"
+      }
+    }
+  }
+  ;;
+}
+
