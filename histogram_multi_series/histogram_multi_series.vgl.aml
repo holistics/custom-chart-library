@@ -1,8 +1,8 @@
 // Custom Histogram by Series Chart for Holistics
 //
 // Displays a histogram of a numeric metric (e.g. hours/day), grouped by a series (e.g. event type).
-// Bars can be stacked or shown side-by-side using a select toggle.
-// Users can customize bin count, chart title, and axis labels.
+// Renders a step-area chart with stacking or overlay mode.
+// Axis labels are derived from the selected fields automatically.
 //
 // Fields:
 // - grain: Dimension to count (e.g. ID or name)
@@ -13,7 +13,6 @@
 // - max_bins: Number of histogram bins
 // - stack_bars: Select between stacked or grouped layout
 // - chart_title: Custom title for the chart
-// - x_axis_label / y_axis_label: Labels for axes
 
 CustomChart {
   fields {
@@ -40,7 +39,7 @@ CustomChart {
     option stack_bars {
       label: "Stacking Mode"
       type: 'select'
-      default_value: "zero"
+      default_value: "none"
       options: [
         { label: "Overlay (Not Stacked)", value: "none" },
         { label: "Stacked", value: "zero" }
@@ -51,22 +50,14 @@ CustomChart {
       type: 'input'
       default_value: "Histogram by Series"
     }
-    option x_axis_label {
-      label: "X Axis Label"
-      type: 'input'
-      default_value: "Binned Value"
-    }
-    option y_axis_label {
-      label: "Y Axis Label"
-      type: 'input'
-      default_value: "Count"
-    }
   }
 
   template: @vgl
   {
-    "title": @{options.chart_title.value},
-    "data": {"values": @{values}},
+    "title": "@{options.chart_title.value}",
+    "data": {
+      "values": @{values}
+    },
     "transform": [
       {
         "bin": {
@@ -86,23 +77,22 @@ CustomChart {
       "x": {
         "field": "@{fields.metric.name} binned",
         "type": "quantitative",
-        "bin": {"binned": true},
-        "title": @{options.x_axis_label.value}
+        "title": "Binned @{fields.metric.name}"
       },
       "y": {
         "aggregate": "count",
-        "title": @{options.y_axis_label.value},
-        "stack": "@{options.stack_bars.value}"  // "zero" or "none"
+        "title": "Count of @{fields.grain.name}",
+        "stack": "@{options.stack_bars.value}"
       },
       "color": {
         "field": @{fields.series.name},
         "type": "nominal",
-        "title": "@{fields.series.label}"
+        "title": "@{fields.series.name}"
       },
       "tooltip": [
-        {"field": "@{fields.series.name}", "type": "nominal"},
-        {"field": "@{fields.metric.name} binned", "type": "quantitative"},
-        {"aggregate": "count", "type": "quantitative", "title": "Count"}
+        { "field": "@{fields.series.name}", "type": "nominal" },
+        { "field": "@{fields.metric.name} binned", "type": "quantitative" },
+        { "aggregate": "count", "type": "quantitative", "title": "Count" }
       ]
     },
     "config": {
