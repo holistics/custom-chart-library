@@ -1,0 +1,115 @@
+// Custom Histogram by Series Chart for Holistics
+//
+// Displays a histogram of a numeric metric (e.g. hours/day), grouped by a series (e.g. event type).
+// Bars can be stacked or shown side-by-side using a select toggle.
+// Users can customize bin count, chart title, and axis labels.
+//
+// Fields:
+// - grain: Dimension to count (e.g. ID or name)
+// - metric: Numeric field to bin (e.g. duration)
+// - series: Categorical grouping field (e.g. event type, date)
+//
+// Options:
+// - max_bins: Number of histogram bins
+// - stack_bars: Select between stacked or grouped layout
+// - chart_title: Custom title for the chart
+// - x_axis_label / y_axis_label: Labels for axes
+
+CustomChart {
+  fields {
+    field grain {
+      label: 'Dimension to count'
+      type: 'dimension'
+    }
+    field metric {
+      label: "Measure to bin"
+      type: 'dimension'
+    }
+    field series {
+      label: "Series (e.g., Event Type)"
+      type: 'dimension'
+    }
+  }
+
+  options {
+    option max_bins {
+      label: "Max bins"
+      type: 'number-input'
+      default_value: 20
+    }
+    option stack_bars {
+      label: "Stacking Mode"
+      type: 'select'
+      default_value: "zero"
+      options: [
+        { label: "Overlay (Not Stacked)", value: "none" },
+        { label: "Stacked", value: "zero" }
+      ]
+    }
+    option chart_title {
+      label: "Chart title"
+      type: 'input'
+      default_value: "Histogram by Series"
+    }
+    option x_axis_label {
+      label: "X Axis Label"
+      type: 'input'
+      default_value: "Binned Value"
+    }
+    option y_axis_label {
+      label: "Y Axis Label"
+      type: 'input'
+      default_value: "Count"
+    }
+  }
+
+  template: @vgl
+  {
+    "title": @{options.chart_title.value},
+    "data": {"values": @{values}},
+    "transform": [
+      {
+        "bin": {
+          "maxbins": @{options.max_bins.value}
+        },
+        "field": @{fields.metric.name},
+        "as": "@{fields.metric.name} binned"
+      }
+    ],
+    "mark": {
+      "type": "area",
+      "interpolate": "step",
+      "opacity": 0.4,
+      "tooltip": true
+    },
+    "encoding": {
+      "x": {
+        "field": "@{fields.metric.name} binned",
+        "type": "quantitative",
+        "bin": {"binned": true},
+        "title": @{options.x_axis_label.value}
+      },
+      "y": {
+        "aggregate": "count",
+        "title": @{options.y_axis_label.value},
+        "stack": "@{options.stack_bars.value}"  // "zero" or "none"
+      },
+      "color": {
+        "field": @{fields.series.name},
+        "type": "nominal",
+        "title": "@{fields.series.label}"
+      },
+      "tooltip": [
+        {"field": "@{fields.series.name}", "type": "nominal"},
+        {"field": "@{fields.metric.name} binned", "type": "quantitative"},
+        {"aggregate": "count", "type": "quantitative", "title": "Count"}
+      ]
+    },
+    "config": {
+      "area": {
+        "line": true
+      }
+    }
+  }
+  ;;
+}
