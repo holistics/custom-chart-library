@@ -48,15 +48,21 @@ CustomChart {
     option chart_title {
       label: "Chart title"
       type: 'input'
-      default_value: "Histogram by Series"
+      default_value: ""
     }
   }
 
-  template: @vgl
-  {
+  template: @vgl {
     "title": "@{options.chart_title.value}",
     "data": {
       "values": @{values}
+    },
+    "selection": {
+      "seriesSelector": {
+        "type": "multi",
+        "fields": ["@{fields.series.name}"],
+        "bind": "legend"
+      }
     },
     "transform": [
       {
@@ -65,6 +71,11 @@ CustomChart {
         },
         "field": @{fields.metric.name},
         "as": "@{fields.metric.name} binned"
+      },
+      {
+        "filter": {
+          "selection": "seriesSelector"
+        }
       }
     ],
     "mark": {
