@@ -1,0 +1,95 @@
+CustomChart {
+  fields {
+    field date {
+      type: "dimension"
+      label: "Date"
+      data_type: "date"
+    }
+    field measure {
+      type: "measure"
+      label: "Measure"
+    }
+    field legend {
+      type: "dimension"
+      label: "Legend"
+    }
+  }
+
+  options {
+    option legend {
+      type: 'toggle'
+      label: 'Hide Legend'
+      default_value: false
+    },
+    option tooltip {
+      type: 'toggle'
+      label: 'Show Tooltip'
+      default_value: true
+    }
+  }
+
+  template: @vgl {
+    "data": {
+      "values": @{values}
+    },
+
+    "mark": {
+      "type": "line",
+      "tooltip": @{options.tooltip.value}
+    },
+
+    "encoding": {
+      "x": {
+        "field": @{fields.date.name}, 
+        "type": "temporal",
+        "title": null,
+        "axis": {
+          "grid": false, 
+          "labelFont": "Inter", 
+          "labelColor": "#858b9e", 
+          "labelFontSize": 11, 
+          "domainColor": "#bec1cb", 
+          "tickColor": "#bec1cb"
+        }
+      },
+      "y": {
+        "field": @{fields.measure.name}, 
+        "type": "quantitative",
+        "title": null,
+        "axis": {
+          "labels": false, 
+          "domain": false, 
+          "grid": false, 
+          "ticks": false
+        }
+      },
+      "color": {
+        "field": @{fields.legend.name}, 
+        "type": "nominal",
+        "legend": {
+          "disable": @{options.legend.value},
+          "titleFont": "Inter",
+          "titleFontSize": 11,
+          "titleFontWeight": "bold",
+          "labelColor": "#858b9e",
+          "labelFont": "Inter",
+          "labelFontSize": 11,
+        }
+      }
+    },
+    "config": {
+      "background": "transparent",
+      "view": {"stroke": null},
+      "range": {
+        "category": [
+          "#255dd4",
+          "#18a59e",
+          "#07326c",
+          "#af7ded",
+          "#a50e43",
+          "#f2b602"
+        ]
+    }
+    }
+  };;
+}
