@@ -3,7 +3,7 @@
 ## Goal
 In this guide, we will create a **Chord Diagram** to visualize the inter-relationships and flows between different entities, by showing weighted connections (chords) between nodes arranged in a circular layout.
 
-<!-- TODO: Add screenshot -->
+<img width="2028" height="1297" alt="image" src="https://github.com/user-attachments/assets/68060210-8fea-4cab-986d-475d1014867c" />
 
 ## Sample Data
 
