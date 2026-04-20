@@ -1,0 +1,71 @@
+// Histogram Chart — Single-Series
+//
+// Renders a bar histogram with binning on a numeric field.
+// Uses the selected fields to dynamically set axis titles.
+// Cleaned and compatible with the original implementation, with an optional chart title override.
+
+CustomChart {
+  fields {
+    field grain {
+      label: 'Dimension to count'
+      type: 'dimension'
+    }
+    field metric {
+      label: "Measure to bin"
+      type: 'dimension' // this could be either a dimension or measure
+    }
+  }
+
+  options {
+    option max_bins {
+      label: "Max bins"
+      type: 'number-input'
+      default_value: 20
+    }
+    option chart_title {
+      label: "Chart title"
+      type: 'input'
+      default_value: "Histogram"
+    }
+  }
+
+  template: @vgl
+  {
+    "title": "@{options.chart_title.value}",
+    "data": {
+      "values": @{values}
+    },
+    "transform": [
+      {
+        "bin": {
+          "maxbins": @{options.max_bins.value}
+        },
+        "field": @{fields.metric.name},
+        "as": "@{fields.metric.name} binned"
+      }
+    ],
+    "mark": {
+      "type": "bar",
+      "tooltip": true
+    },
+    "encoding": {
+      "x": {
+        "field": "@{fields.metric.name} binned",
+        "type": "quantitative",
+        "title": "@{fields.metric.name} binned"
+      },
+      "x2": {
+        "field": "@{fields.metric.name} binned_end"
+      },
+      "y": {
+        "aggregate": "count",
+        "title": "Count of @{fields.grain.name}"
+      },
+      "tooltip": [
+        { "field": "@{fields.metric.name} binned", "type": "quantitative" },
+        { "aggregate": "count", "type": "quantitative", "title": "Count" }
+      ]
+    }
+  }
+  ;;
+}
