@@ -10,6 +10,17 @@ Overlays a regression trend line (with a selectable functional form — linear, 
 
 ![bar-with-trendline](https://github.com/holistics/custom-chart-library/assets/106363759/4ca65219-4ebe-46fe-8813-fea918f72631)
 
+## Regression methods
+
+Both variants share the same `regression_method` option, which chooses the trend line's functional form:
+
+- linear (`linear`): *y = a + b·x* (default)
+- logarithmic (`log`): *y = a + b·log(x)*
+- exponential (`exp`): *y = a·e^(b·x)*
+- power (`pow`): *y = a·x^b*
+- quadratic (`quad`): *y = a + b·x + c·x²*
+- polynomial (`poly`): *y = a + b·x + … + k·x^order*
+
 ## Syntax reference
 
 ### As-code syntax

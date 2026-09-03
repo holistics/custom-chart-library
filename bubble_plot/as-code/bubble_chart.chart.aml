@@ -1,0 +1,90 @@
+CustomChartDef bubble_chart {
+  label: 'Bubble Chart'
+  icon: 'hicon:chart-bubble-2'
+  description: 'To visualize the magnitude of a measurement using the size of each circle.'
+  fields {
+    field x_axis {
+      label: 'X-axis'
+      type: 'dimension'
+      sort {
+        apply_order: 1
+        direction: 'asc'
+      }
+    }
+
+    field y_axis {
+      label: 'Y-axis'
+      type: 'dimension'
+      sort {
+        apply_order: 2
+        direction: 'asc'
+      }
+    }
+
+    field size {
+      label: 'Size'
+      type: 'dimension'
+      data_type: 'number'
+      sort {
+        apply_order: 3
+        direction: 'asc'
+      }
+    }
+
+    field category {
+      label: 'Category'
+      type: 'dimension'
+    }
+
+  }
+
+  options {
+    option show_tooltip {
+      label: 'Show tooltip'
+      type: 'toggle'
+      default_value: true
+    }
+  }
+
+  template: @vgl {
+    "data": {
+      "values": @{values}
+    },
+    "params": [
+      {"name": "normalPointSelection", "select": {"type": "point", "fields": [@{fields.category.name}], "toggle": "true", "clear": "mouseup"}},
+      {"name": "hoverPointSelection", "select": {"type": "point", "fields": [@{fields.x_axis.name}, @{fields.y_axis.name}, @{fields.size.name}, @{fields.category.name}], "on": "mouseover", "clear": "mouseout"}}
+    ],
+    "mark": {"type": "circle", "opacity": 0.7, "tooltip": @{options.show_tooltip.value}},
+    "encoding": {
+      "x": {
+        "field": @{fields.x_axis.name},
+        "type": "quantitative",
+        "axis": {"format": @{fields.x_axis.format}, "formatType": "holisticsFormat"}
+      },
+      "y": {
+        "field": @{fields.y_axis.name},
+        "type": "quantitative",
+        "axis": {"format": @{fields.y_axis.format}, "formatType": "holisticsFormat"}
+      },
+      "size": {
+        "field": @{fields.size.name},
+        "type": "quantitative",
+        "legend": null
+      },
+      "color": {
+        "field": @{fields.category.name},
+        "type": "nominal",
+        "legend": {"orient": "right"}
+      },
+
+      "opacity": {
+        "condition": {"param": "hoverPointSelection", "value": 1},
+        "value": 0.15
+      }
+    },
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection"]
+    }
+  };;
+}

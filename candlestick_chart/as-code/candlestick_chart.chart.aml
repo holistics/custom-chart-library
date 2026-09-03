@@ -1,0 +1,137 @@
+CustomChartDef candlestick_chart {
+  label: 'Candlestick Chart'
+  icon: 'hicon:chart-candlestick'
+  description: 'To visualize the open, high, low, and close price movement of financial instruments over time.'
+  fields {
+    field date {
+      label: 'Date'
+      type: 'dimension'
+      data_type: 'date'
+      sort {
+        apply_order: 1
+        direction: 'asc'
+      }
+    }
+    field low {
+      label: 'Low'
+      type: 'measure'
+      data_type: 'number'
+      sort {
+        apply_order: 2
+        direction: 'asc'
+      }
+    }
+    field high {
+      label: 'High'
+      type: 'measure'
+      data_type: 'number'
+      sort {
+        apply_order: 3
+        direction: 'asc'
+      }
+    }
+    field open {
+      label: 'Open'
+      type: 'measure'
+      data_type: 'number'
+      sort {
+        apply_order: 4
+        direction: 'asc'
+      }
+    }
+    field close {
+      label: 'Close'
+      type: 'measure'
+      data_type: 'number'
+      sort {
+        apply_order: 5
+        direction: 'asc'
+      }
+    }
+  }
+
+  options {
+    option tooltip {
+      type: 'toggle'
+      label: 'Show tooltip'
+      default_value: true
+    }
+    option green_candle {
+      type: 'color-picker'
+      label: 'Green candlestick'
+      default_value: 'green'
+    }
+    option red_candle {
+      type: 'color-picker'
+      label: 'Red candlestick'
+      default_value: 'red'
+    }
+  }
+
+  template: @vgl
+  {
+    "data": {
+      "values": @{values}
+    },
+    "layer": [
+      {
+        "mark": "rule",
+        "params": [
+          {"name": "normalPointSelection", "select": {"type": "point", "toggle": "true", "clear": "mouseup"}},
+          {"name": "hoverPointSelection", "select": {"type": "point", "on": "mouseover", "clear": "mouseout"}}
+        ],
+        "encoding": {
+          "y": {"field": @{fields.low.name}},
+          "y2": {"field": @{fields.high.name}}
+        }
+      },
+      {
+        "mark": {
+          "type": "bar",
+          "tooltip": @{options.tooltip.value}
+        },
+        "params": [
+          {"name": "candle_hover", "select": {"type": "point", "fields": [@{fields.date.name}], "on": "mouseover", "clear": "mouseout"}}
+        ],
+        "encoding": {
+          "y": {"field": @{fields.open.name}},
+          "y2": {"field": @{fields.close.name}}
+        }
+      }
+    ],
+    "encoding": {
+      "x": {
+        "type": "temporal",
+        "field": @{fields.date.name},
+        "axis": {"grid": false, "format": "%b %Y"}
+      },
+      "y": {
+        "axis": {
+          "title": "Price"
+        },
+        "type": "quantitative",
+        "scale": {
+          "zero": false
+        }
+      },
+      "color": {
+        "condition": {
+          "test": "datum['@{fields.open.name}'] < datum['@{fields.close.name}']",
+          "value": @{options.green_candle.value}
+        },
+        "value": @{options.red_candle.value}
+      },
+      "opacity": {
+        "condition": [
+          {"test": "!length(data('candle_hover_store'))", "value": 1},
+          {"param": "candle_hover", "empty": false, "value": 1}
+        ],
+        "value": 0.15
+      }
+    },
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection"]
+    }
+  };;
+}

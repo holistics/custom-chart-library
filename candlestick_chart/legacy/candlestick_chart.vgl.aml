@@ -1,0 +1,94 @@
+CustomChart {
+  fields {
+    field date {
+      type: "dimension"
+      label: "Date field"
+    }
+    field low {
+      type: "dimension"
+      label: "Low price"
+    }
+    field high {
+      type: "dimension"
+      label: "High price"
+    }
+    field open {
+      type: "dimension"
+      label: "Open price"
+    }
+    field close {
+      type: "dimension"
+      label: "Close price"
+    }
+  }
+
+  	options {
+		option tooltip {
+			type: 'toggle'
+			label: 'Show tooltip'
+			default_value: true
+		}
+		option green_candle {
+			type: 'color-picker'
+			label: 'Green candlestick'
+			default_value: 'green'
+		}
+    option red_candle {
+			type: 'color-picker'
+			label: 'Red candlestick'
+			default_value: 'red'
+		}
+	}
+
+  template: @vgl
+  {
+    "data": {
+      "values": @{values}
+    },
+    "layer": [
+      {
+        "mark": "rule",
+        "encoding": {
+          "y": {"field": @{fields.low.name}},
+          "y2": {"field": @{fields.high.name}}
+        }
+      },
+      {
+        "mark": {
+          "type": "bar",
+          "tooltip": @{options.tooltip.value}
+        },
+        "encoding": {
+          "y": {"field": @{fields.open.name}},
+          "y2": {"field": @{fields.close.name}}
+        }
+      }
+    ],
+    "encoding": {
+      "x": {
+        "axis": {
+          "format": "%m/%d",
+          "labelAngle": -45
+        },
+        "type": "temporal",
+        "field": @{fields.date.name},
+      },
+      "y": {
+        "axis": {
+          "title": "Price"
+        },
+        "type": "quantitative",
+        "scale": {
+          "zero": false
+        }
+      },
+      "color": {
+        "condition": {
+          "test": "datum.@{fields.open.name} < datum.@{fields.close.name}",
+          "value": @{options.green_candle.value}
+        },
+        "value": @{options.red_candle.value}
+      }
+    }
+  };;
+}

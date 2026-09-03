@@ -1,0 +1,203 @@
+CustomChartDef treemap {
+  label: 'Treemap'
+  icon: 'hicon:chart-treemap'
+  description: 'To show how categories make up a total as nested rectangles sized by value.'
+  fields {
+    field dimension {
+      label: 'Dimension'
+      type: 'dimension'
+      sort {
+        apply_order: 1
+        direction: 'asc'
+      }
+    }
+    field value {
+      label: 'Value'
+      type: 'measure'
+      sort {
+        apply_order: 2
+        direction: 'desc'
+      }
+    }
+  }
+  options {
+    option text_color {
+      label: 'Text color'
+      type: 'color-picker'
+      default_value: '#FFFFFF'
+    }
+    option text_length_limit {
+      label: 'Text length limit (px)'
+      type: 'number-input'
+      default_value: 200
+    }
+    option show_tooltip {
+      label: 'Show tooltip'
+      type: 'toggle'
+      default_value: true
+    }
+    option layout_method {
+      label: 'Treemap method'
+      type: 'select'
+      default_value: 'squarify'
+      options: [
+        'binary',
+        'squarify',
+        'dice',
+        'resquarify',
+        'slice',
+        'slicedice'
+      ]
+    }
+  }
+  template: @vg {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "signals": [
+      {
+        "name": "width",
+        "init": "containerSize()[0] - 5",
+        "on": [{ "events": "window:resize", "update": "containerSize()[0] - 5" }]
+      },
+      {
+        "name": "height",
+        "init": "containerSize()[1] - 5",
+        "on": [{ "events": "window:resize", "update": "containerSize()[1] - 5" }]
+      },
+      {
+        "name": "normalPointSelection",
+        "value": null,
+        "on": [
+          {"events": "@rectMark:click", "update": "{'@{fields.dimension.name}': [datum['@{fields.dimension.name}']]}"},
+          {"events": "click[!event.item]", "update": "null"}
+        ]
+      },
+      {
+        "name": "hoverPointSelection",
+        "value": null,
+        "on": [
+          {"events": "@rectMark:mouseover", "update": "{'@{fields.dimension.name}': [datum['@{fields.dimension.name}']]}"},
+          {"events": "@rectMark:mouseout", "update": "null"}
+        ]
+      }
+    ],
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection"]
+    },
+    "data": [
+      {
+        "name": "tree",
+        "values": @{values},
+        "transform": [
+          {
+            "type": "filter",
+            "expr": "datum['@{fields.value.name}'] !== null && datum['@{fields.value.name}'] > 0"
+          },
+          {
+            "type": "joinaggregate",
+            "ops": ["sum"],
+            "fields": [@{fields.value.name}],
+            "as": ["_total_size"]
+          },
+          {
+            "type": "joinaggregate",
+            "ops": ["max"],
+            "fields": [@{fields.value.name}],
+            "as": ["_max_size"]
+          },
+          {
+            "type": "formula",
+            "as": "_percentage",
+            "expr": "round(datum['@{fields.value.name}'] / datum._total_size * 10000)/100 + '%'"
+          },
+          {
+            "type": "formula",
+            "as": "_opacity",
+            "expr": "datum['@{fields.value.name}'] / datum._max_size"
+          },
+          {"type": "nest" },
+          {
+            "type": "treemap",
+            "field": @{fields.value.name},
+            "sort": {"field": @{fields.value.name}},
+            "round": true,
+            "method": @{options.layout_method.value},
+            "size": [{"signal": "width"}, {"signal": "height"}]
+          }
+        ]
+      }
+    ],
+    "scales": [
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": ["default"],
+        "range": "category"
+      }
+    ],
+    "marks": [
+      {
+        "type": "rect",
+        "name": "rectMark",
+        "from": {"data": "tree"},
+        "interactive": true,
+        "encode": {
+          "enter": {
+            "stroke": {"value": "white"},
+            "strokeWidth": {"value": 2},
+            "fill": {"scale": "color", "value": "default"},
+            "tooltip": {
+              "signal": "@{options.show_tooltip.value} ? datum['@{fields.dimension.name}'] + ': ' + datum['@{fields.value.name}'] + ' (' + datum._percentage + ')' : null"
+            }
+          },
+          "update": {
+            "x": {"field": "x0"},
+            "y": {"field": "y0"},
+            "x2": {"field": "x1"},
+            "y2": {"field": "y1"},
+            "opacity": {"field": "_opacity"}
+          },
+          "hover": {"opacity": {"value": 1}}
+        }
+      },
+      {
+        "type": "text",
+        "from": {"data": "tree"},
+        "interactive": false,
+        "encode": {
+          "enter": {
+            "font": {"value": "Inter"},
+            "align": {"value": "center"},
+            "baseline": {"value": "middle"},
+            "text": {"field": @{fields.dimension.name}},
+            "limit": {"value": @{options.text_length_limit.value}}
+          },
+          "update": {
+            "fill": {"value": "@{options.text_color.value}"},
+            "x": {"signal": "0.5 * (datum.x0 + datum.x1)"},
+            "y": {"signal": "0.5 * (datum.y0 + datum.y1 - 15)"}
+          }
+        }
+      },
+      {
+        "type": "text",
+        "from": {"data": "tree"},
+        "interactive": false,
+        "encode": {
+          "enter": {
+            "font": {"value": "Inter"},
+            "fontSize": {"value": 13},
+            "fontWeight": {"value": 600},
+            "baseline": {"value": "top"},
+            "text": {"field": "_percentage"}
+          },
+          "update": {
+            "fill": {"value": "@{options.text_color.value}"},
+            "x": {"signal": "datum.x0 + 5"},
+            "y": {"signal": "datum.y0 + 10"}
+          }
+        }
+      }
+    ]
+  };;
+}

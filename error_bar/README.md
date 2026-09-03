@@ -1,83 +1,43 @@
-# Preview
+# Error Bar
 
-<img width="925" alt="image" src="https://user-images.githubusercontent.com/27631976/190314670-68dc3426-eca0-4fb6-8379-a6a844ed0b4b.png">
+An error bar visualizes the uncertainty or degree of error in a reported measurement.
 
+- **Good for:** showing the spread or confidence around a mean per category, comparing variability across groups, summarizing repeated measurements.
+- **Not great for:** a single value with no spread (use a KPI or gauge), trends over time, or part-to-whole composition.
 
-# Sample Data
+![](https://media.holistics.io/40eb724b-error-bar.png)
 
-<aside>
-💡 Import this sample data into Holistics to use
+## Required fields
 
-</aside>
+An Error Bar expects exactly two fields. Each input row is one observation, and the template groups observations by category to compute the mean and spread.
 
-[barley.csv](https://github.com/holistics/custom-chart-library/files/9571807/barley.csv)
+| Field       | Label     | Type        | Role |
+|-------------|-----------|-------------|------|
+| `value`     | Value     | `dimension` | Numeric observation on the x axis (`data_type: 'number'`). The mean sets the point, and the chosen extent sets the bar. Sorted ascending (`apply_order: 1`). |
+| `dimension` | Dimension | `dimension` | Category on the y axis (one error bar per value). Sorted ascending (`apply_order: 2`). |
 
-# Code
+**Data requirements:** Do not pre-aggregate. The template computes the mean and the error extent from the raw rows, so each category needs multiple observations for a meaningful spread.
 
-<aside>
-💡 Copy and paste this code into More Settings > Custom Chart
+## Options
 
-</aside>
+| Option   | Default | Effect |
+|----------|---------|--------|
+| `extent` | `ci`    | How the template computes the error bar length. Options: `ci` (95% confidence interval), `stderr` (standard error), `stdev` (standard deviation), `iqr` (interquartile range). |
 
-```javascript
-CustomChart {
-  fields {
-    field point {
-      type: "dimension"
-      label: "Points"
-    }
-    field variety {
-      type: "dimension"
-      label: "Variety"
-    }
-  }
-  template: @vgl
-  {
-      "data": {
-        "values": @{values}
-      },
-      "layer": [
-        {
-          "mark": {
-            "type": "point",
-            "filled": true
-          },
-          "encoding": {
-            "x": {
-              "type": "quantitative",
-              "field": @{fields.point.name},
-              "scale": {
-                "zero": false
-              },
-              "title": "Barley Yield",
-              "aggregate": "mean"
-            },
-            "color": {
-              "value": "black"
-            }
-          }
-        },
-        {
-          "mark": {
-            "type": "errorbar",
-            "extent": "ci"
-          },
-          "encoding": {
-            "x": {
-              "type": "quantitative",
-              "field": @{fields.point.name},
-              "title": "Barley Yield"
-            }
-          }
-        }
-      ],
-      "encoding": {
-        "y": {
-          "type": "ordinal",
-          "field": @{fields.variety.name}
-        }
-      }
-    }
-  ;;;
-}
-```
+## Known limitations
+
+- **Needs multiple rows per category.** The bar reflects spread across observations, so a single row per category produces a point with no visible error bar.
+- **The center point is always the mean of `value`.** Showing a median or another statistic requires editing the template.
+- **One dimension only.** The chart plots one category axis. Comparing a second grouping (for example, by color) requires editing the template.
+
+## Sample data
+
+💡 Import this sample data into Holistics to use: [barley.csv](https://github.com/holistics/custom-chart-library/files/9571807/barley.csv)
+
+## Syntax reference
+
+### As-code syntax
+- [error_bar.chart.aml](as-code/error_bar.chart.aml)
+
+### Legacy syntax
+- [error_bar.vgl.aml](legacy/error_bar.vgl.aml)

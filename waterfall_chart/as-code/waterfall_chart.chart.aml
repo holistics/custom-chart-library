@@ -1,0 +1,243 @@
+CustomChartDef waterfall_chart {
+  label: 'Waterfall Chart'
+  icon: 'hicon:chart-waterfall'
+  description: 'To show how a sequence of positive and negative changes builds up to a running total.'
+  fields {
+    field amount {
+      label: 'Amount'
+      type: 'measure'
+      sort {
+        apply_order: 1
+        direction: 'desc'
+      }
+    }
+    field label {
+      label: 'Label'
+      type: 'dimension'
+      sort {
+        apply_order: 2
+        direction: 'asc'
+      }
+    }
+    field sort_order {
+      label: 'Sort order'
+      type: 'dimension'
+      data_type: 'number'
+      sort {
+        apply_order: 3
+        direction: 'asc'
+      }
+    }
+  }
+  options {
+    option begin_label {
+      label: 'Begin label'
+      type: 'input'
+      default_value: ''
+    }
+    option end_label {
+      label: 'End label'
+      type: 'input'
+      default_value: 'Total'
+    }
+    option bar_padding {
+      label: 'Bar padding (0-0.9)'
+      type: 'number-input'
+      default_value: 0.3
+    }
+
+    option begin_end_color {
+      label: 'Begin - End color'
+      type: 'color-picker'
+      default_value: '#BDBDBD'
+    }
+    option begin_end_text {
+      label: 'Begin - End label color'
+      type: 'color-picker'
+      default_value: 'black'
+    }
+    option positive {
+      label: 'Positive color'
+      type: 'color-picker'
+      default_value: '#58A65C'
+    }
+    option negative {
+      label: 'Negative color'
+      type: 'color-picker'
+      default_value: '#D85140'
+    }
+    option value_format {
+      label: 'Format'
+      type: 'input'
+      default_value: '$,.0f'
+    }
+  }
+
+  template: @vgl {
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "data": {
+      "values": @{values}
+    },
+    "transform": [
+      {"calculate": "datum['@{fields.amount.name}']", "as": "amount"},
+      {"calculate": "datum['@{fields.label.name}']", "as": "label"},
+      {"calculate": "datum['@{fields.sort_order.name}']", "as": "label_sorter"},
+      {
+        "window": [{"op": "sum", "field": "amount", "as": "sum"}],
+        "sort": [{"field": "label_sorter", "order": "ascending"}]
+      },
+      {
+        "window": [{"op": "lead", "field": "label", "as": "lead"}],
+        "sort": [{"field": "label_sorter", "order": "ascending"}]
+      },
+      {"calculate": "datum.lead === null ? '@{options.end_label.value}' : datum.lead", "as": "lead"},
+      {"calculate": "datum.label === '@{options.end_label.value}' ? 0 : datum.sum - datum.amount", "as": "previous_sum"},
+      {"calculate": "datum.label === '@{options.end_label.value}' ? datum.sum : datum.amount", "as": "amount"},
+      {
+        "calculate": "(datum.label !== '@{options.begin_label.value}' && datum.label !== '@{options.end_label.value}' && datum.amount > 0 ? '+' + format(datum.amount, '@{options.value_format.value}') : format(datum.amount, '@{options.value_format.value}'))",
+        "as": "text_amount"
+      },
+      {"calculate": "(datum.sum + datum.previous_sum) / 2", "as": "center"},
+      {"calculate": "datum.sum < datum.previous_sum ? datum.sum : ''", "as": "sum_dec"},
+      {"calculate": "datum.sum > datum.previous_sum ? datum.sum : ''", "as": "sum_inc"}
+    ],
+    "encoding": {
+      "x": {
+        "field": "label",
+        "type": "ordinal",
+        "sort": {"field": "label_sorter", "order": "ascending"},
+        "scale": {"paddingInner": @{options.bar_padding.value}, "paddingOuter": 0.15},
+        "axis": {
+          "format": @{fields.label.format},
+          "formatType": "holisticsFormat",
+          "labelLimit": 70
+        }
+      }
+    },
+    "layer": [
+      {
+        "mark": {"type": "bar"},
+        "params": [
+          {
+            "name": "waterfall_hover",
+            "select": {
+              "type": "point",
+              "fields": ["label", "label_sorter"],
+              "on": "mouseover",
+              "clear": "mouseout"
+            }
+          },
+          {
+            "name": "normalPointSelection",
+            "select": {
+              "type": "point",
+              "toggle": "true",
+              "clear": "mouseup"
+            }
+          },
+          {
+            "name": "hoverPointSelection",
+            "select": {
+              "type": "point",
+              "on": "mouseover",
+              "clear": "mouseout"
+            }
+          }
+        ],
+        "encoding": {
+          "y": {"field": "previous_sum", "type": "quantitative", "format": @{fields.amount.format}, "formatType": "holisticsFormat"},
+          "y2": {"field": "sum"},
+          "tooltip": [
+            {"field": "label", "title": @{fields.label.name}, "format": @{fields.label.format}, "formatType": "holisticsFormat"},
+            {"field": "amount", "title": @{fields.amount.name}, "format": @{options.value_format.value}},
+            {"field": "sum", "title": "Total", "format": @{options.value_format.value}}
+          ],
+          "color": {
+            "condition": [
+              {
+                "test": "datum.label === '@{options.begin_label.value}'",
+                "value": @{options.begin_end_color.value}
+              },
+              {"test": "datum.sum < datum.previous_sum", "value":  @{options.negative.value}}
+            ],
+            "value": @{options.positive.value}
+          },
+          "fillOpacity": {
+            "condition": {"param": "waterfall_hover", "value": 1},
+            "value": 0.15
+          }
+        }
+      },
+      {
+        "transform": [
+          {"filter": "datum.lead === '@{options.end_label.value}'"},
+          {"calculate": "datum.sum / 2", "as": "center_end"}
+        ],
+        "encoding": {
+          "x": {
+            "field": "lead",
+            "sort": null,
+            "axis": {
+              "format": @{fields.label.format},
+              "formatType": "holisticsFormat"
+            }
+          }
+        },
+        "layer": [
+          {
+            "mark": {"type": "bar"},
+            "encoding": {
+              "y": {"field": "sum", "type": "quantitative"},
+              "tooltip": [
+                {"field": "sum", "title": "Total", "format": @{options.value_format.value}}
+              ],
+              "color": {"value": @{options.begin_end_color.value}}
+            }
+          },
+          {
+            "mark": {"type": "text", "fontWeight": "bold", "baseline": "middle", "limit": {"expr": "bandwidth('x') * 1.8"}},
+            "encoding": {
+              "y": {"field": "center_end", "type": "quantitative"},
+              "text": {"field": "sum", "format": @{options.value_format.value}},
+              "color": {"value": @{options.begin_end_text.value}}
+            }
+          }
+        ]
+      },
+      {
+        "mark": {
+          "type": "rule",
+          "opacity": 1,
+          "strokeWidth": 1,
+          "color": @{options.begin_end_color.value},
+          "xOffset": {"expr": "bandwidth('x') / 2"},
+          "x2Offset": {"expr": "0 - bandwidth('x') / 2"}
+        },
+        "encoding": {
+          "x2": {"field": "lead"},
+          "y": {"field": "sum", "type": "quantitative"}
+        }
+      },
+      {
+        "mark": {"type": "text", "fontWeight": "bold", "baseline": "middle", "limit": {"expr": "bandwidth('x') * 1.8"}},
+        "encoding": {
+          "y": {"field": "center", "type": "quantitative"},
+          "text": {"field": "text_amount", "type": "nominal"},
+          "color": {
+            "condition": [
+              {
+                "test": "datum.label === '@{options.begin_label.value}' || datum.label === '@{options.end_label.value}'",
+                "value": @{options.begin_end_text.value}
+              }
+            ],
+            "value": "white"
+          }
+        }
+      }
+    ],
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection"]
+    }
+  };;
+}

@@ -1,0 +1,51 @@
+CustomChart {
+  fields {
+    field x_axis {
+      type: "dimension"
+      label: "X axis"
+    }
+
+    field y_axis {
+      type: "dimension"
+      label: "Y axis"
+    }
+
+    field size {
+      type: "dimension"
+      label: "Size"
+    }
+
+  }
+
+  template: @vgl {
+    "data": {
+      "values": @{values}
+    },
+    "mark": {
+      "type": "circle",
+      "opacity": 0.8,
+      "stroke": "black",
+      "strokeWidth": 1
+    },
+    "encoding": {
+      "x": {
+        "field": @{fields.x_axis.name},
+        "type": "temporal",
+        "axis": {"grid": false}
+      },
+      "y": {
+        "field": @{fields.y_axis.name},
+        "type": "nominal",
+        "axis": {"title": ""}
+      },
+      "size": {
+        "field": @{fields.size.name},
+        "type": "quantitative",
+        "title": "Annual Global Deaths",
+        "legend": {"clipHeight": 30},
+        "scale": {"rangeMax": 5000}
+      },
+      "color": {"field": @{fields.y_axis.name}, "type": "nominal", "legend": null}
+    }
+  };;
+}

@@ -1,0 +1,27 @@
+CustomChart {
+  fields {
+    field grain {
+      type: 'dimension'
+    }
+    field metric {
+      type: 'dimension' // this type can be dimenson or measure depends on the type of field that you want to create the histogram on
+    }
+  }
+  template: @vgl
+  {
+    "data": {"values": @{values}},
+    "transform": [
+      {"bin": {"maxbins": 40}, "field": @{fields.metric.name}, "as": "binned_price"}
+    ],
+    "mark": {
+      "type": "bar",
+      "tooltip": true
+    },
+    "encoding": {
+      "x": {"field": "binned_price", "type": "quantitative", "bin": {"binned": true, "step": 20}},
+      "x2": {"field": "binned_price_end"},
+      "y": {"aggregate": "count"}
+    }
+  }
+  ;;
+}
