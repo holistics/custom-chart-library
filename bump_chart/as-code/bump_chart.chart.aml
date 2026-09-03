@@ -1,0 +1,211 @@
+CustomChartDef bump_chart {
+  label: 'Bump Chart'
+  icon: 'hicon:chart-line-2'
+  description: 'To track how categories rank against each other over time, highlighting overtakes and trend reversals.'
+  fields {
+    field period {
+      label: 'Period'
+      type: 'dimension'
+      sort {
+        apply_order: 1
+        direction: 'asc'
+      }
+    }
+    field dimension {
+      label: 'Dimension'
+      type: 'dimension'
+      sort {
+        apply_order: 2
+        direction: 'asc'
+      }
+    }
+    field value {
+      label: 'Value'
+      type: 'measure'
+      sort {
+        apply_order: 3
+        direction: 'desc'
+      }
+    }
+  }
+  options {
+    option line_interpolate {
+      type: 'select'
+      label: 'Line style'
+      options: [
+        'linear',
+        'monotone'
+      ]
+      default_value: 'monotone'
+    }
+
+    option point_size {
+      type: 'number-input'
+      label: 'Point size'
+      default_value: 100
+    }
+
+    option show_tooltip {
+      type: 'toggle'
+      label: 'Show tooltip'
+      default_value: true
+    }
+  }
+  template: @vg {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "signals": [
+      {
+        "name": "width",
+        "init": "containerSize()[0] - 10",
+        "on": [{ "events": "window:resize", "update": "containerSize()[0] - 10" }]
+      },
+      {
+        "name": "height",
+        "init": "containerSize()[1] - 10",
+        "on": [{ "events": "window:resize", "update": "containerSize()[1] - 10" }]
+      },
+      {
+        "name": "hovered",
+        "value": null,
+        "on": [
+          {"events": "symbol:mouseover", "update": "datum.category"},
+          {"events": "symbol:mouseout", "update": "null"},
+          {"events": "@legendSymbol:mouseover, @legendLabel:mouseover", "update": "datum.value"},
+          {"events": "@legendSymbol:mouseout, @legendLabel:mouseout", "update": "null"}
+        ]
+      },
+      {
+        "name": "normalPointSelection",
+        "value": null,
+        "on": [
+          {"events": "symbol:click, line:click", "update": "{'@{fields.dimension.name}': [datum.category]}"},
+          {"events": "@legendSymbol:click, @legendLabel:click", "update": "{'@{fields.dimension.name}': [datum.value]}"},
+          {"events": "click[!event.item]", "update": "null"}
+        ]
+      },
+      {
+        "name": "hoverPointSelection",
+        "value": null,
+        "on": [
+          {"events": "symbol:mouseover, line:mouseover", "update": "{'@{fields.dimension.name}': [datum.category]}"},
+          {"events": "symbol:mouseout, line:mouseout", "update": "null"}
+        ]
+      }
+    ],
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection"]
+    },
+    "data": [
+      {
+        "name": "table",
+        "values": @{values},
+        "transform": [
+          {"type": "formula", "expr": "datum['@{fields.period.name}']", "as": "period"},
+          {"type": "formula", "expr": "datum['@{fields.dimension.name}']", "as": "category"},
+          {"type": "formula", "expr": "datum['@{fields.value.name}']", "as": "amount"},
+          {
+            "type": "window",
+            "sort": {"field": "amount", "order": "descending"},
+            "ops": ["rank"],
+            "as": ["rank"],
+            "groupby": ["period"]
+          },
+          {
+            "type": "collect",
+            "sort": {"field": "period"}
+          }
+        ]
+      }
+    ],
+    "scales": [
+      {
+        "name": "x",
+        "type": "point",
+        "domain": {"data": "table", "field": "period", "sort": true},
+        "range": "width"
+      },
+      {
+        "name": "y",
+        "type": "point",
+        "domain": {"data": "table", "field": "rank", "sort": true},
+        "range": "height"
+      },
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": {"data": "table", "field": "category"},
+        "range": "category"
+      }
+    ],
+    "axes": [
+      {"orient": "bottom", "scale": "x"},
+      {"orient": "left", "scale": "y", "title": "Rank", "grid": true}
+    ],
+    "legends": [
+      {
+        "fill": "color",
+        "title": null,
+        "orient": "top",
+        "direction": "horizontal",
+        "encode": {
+          "symbols": {
+            "name": "legendSymbol",
+            "interactive": true,
+            "update": {
+              "opacity": {"signal": "hovered === null || hovered === datum.value ? 1 : 0.15"}
+            }
+          },
+          "labels": {
+            "name": "legendLabel",
+            "interactive": true,
+            "update": {
+              "opacity": {"signal": "hovered === null || hovered === datum.value ? 1 : 0.3"}
+            }
+          }
+        }
+      }
+    ],
+    "marks": [
+      {
+        "type": "group",
+        "from": {"facet": {"name": "series", "data": "table", "groupby": "category"}},
+        "marks": [
+          {
+            "type": "line",
+            "name": "bumpLine",
+            "from": {"data": "series"},
+            "encode": {
+              "update": {
+                "x": {"scale": "x", "field": "period"},
+                "y": {"scale": "y", "field": "rank"},
+                "stroke": {"scale": "color", "field": "category"},
+                "interpolate": {"value": @{options.line_interpolate.value}},
+                "strokeWidth": {"signal": "hovered === datum.category ? 4 : 2"},
+                "opacity": {"signal": "hovered === null || hovered === datum.category ? 1 : 0.15"}
+              }
+            }
+          },
+          {
+            "type": "symbol",
+            "name": "bumpPoint",
+            "from": {"data": "series"},
+            "encode": {
+              "update": {
+                "x": {"scale": "x", "field": "period"},
+                "y": {"scale": "y", "field": "rank"},
+                "fill": {"scale": "color", "field": "category"},
+                "size": {"value": @{options.point_size.value}},
+                "opacity": {"signal": "hovered === null || hovered === datum.category ? 1 : 0.15"},
+                "tooltip": {
+                  "signal": "@{options.show_tooltip.value} ? datum.category + ' - ' + datum.period + ': rank ' + datum.rank + ' (' + format(datum.amount, ',') + ')' : null"
+                }
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+  ;;
+}
