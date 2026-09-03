@@ -1,12 +1,3 @@
-# Bar chart with Trendline
-
-## Final Result
-
-![bar-with-trendline](https://github.com/holistics/custom-chart-library/assets/106363759/2cad544d-034e-4c93-aca3-4fb07b516119)
-
-## Full code example
-
-```javascript
 CustomChart {
   fields {
     field x {
@@ -119,4 +110,3 @@ CustomChart {
   };;
 
 }
-```

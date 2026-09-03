@@ -1,239 +1,47 @@
 # Waterfall Chart
 
-Waterfall chart is useful for visualizing how intermediate values contribute to a total, particularly when showing the cumulative effect of sequential positive or negative changes. Common applications include financial statements, P&L analysis, budget variances, and sales funnels.
+A waterfall chart visualizes how intermediate values contribute to a total, particularly the cumulative effect of sequential positive or negative changes. Common applications include financial statements, P&L analysis, budget variances, and sales funnels.
+
+- **Good for:** profit-and-loss breakdowns, budget variance, revenue bridges, any running total built from sequential positive and negative steps.
+- **Not great for:** part-to-whole composition without an order (use a treemap or sunburst), independent category comparison (use a bar chart), or time series with one value per period.
 
 <img alt="reporting-waterfall-chart-thumbnail" title="reporting-waterfall-chart-thumbnail" src="https://cdn.holistics.io/product/reporting-waterfall-chart-thumbnail-20250224-655.png" width="1326" height="746" />
 
-## Full code example
+## Required fields
 
-```aml
-CustomChart {
-  fields {
-    field amount {
-      type: 'measure'
-    }
-    field label {
-      type: 'dimension'
-    }
-    field label_sorter {
-      type: 'dimension'
-    }
-  }
-  options {
-    option begin_label {
-      label: 'Begin Label'
-      type: 'input'
-      default_value: ''
-    }
-    option end_label {
-      label: 'End Label'
-      type: 'input'
-      default_value: 'Total'
-    }
-    option bar_size {
-      label: 'Bar Size'
-      type: 'number-input'
-      default_value: 50
-    }
-    option begin_end_color {
-      label: 'Begin - End Color'
-      type: 'color-picker'
-      default_value: '#BDBDBD'
-    }
-    option begin_end_text {
-      label: 'Begin - End Label Color'
-      type: 'color-picker'
-      default_value: 'black'
-    }
-    option positive {
-      label: 'Positive Color'
-      type: 'color-picker'
-      default_value: '#58A65C'
-    }
-    option negative {
-      label: 'Negative Color'
-      type: 'color-picker'
-      default_value: '#D85140'
-    }
-    option value_format {
-      label: 'Format'
-      type: 'input'
-      default_value: '$,.0f'
-    }
-  }
+A Waterfall Chart expects exactly three fields. Each row of input is one step in the sequence.
 
-  template: @vgl {
-    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-    "data": {
-      "values": @{values}
-    },
-    "transform": [
-      {"calculate": "datum['@{fields.amount.name}']", "as": "amount"},
-      {"calculate": "datum['@{fields.label.name}']", "as": "label"},
-      {"calculate": "datum['@{fields.label_sorter.name}']", "as": "label_sorter"},
-      {
-        "window": [{"op": "sum", "field": "amount", "as": "sum"}],
-        "sort": [{"field": "label_sorter", "order": "ascending"}]
-      },
-      {
-        "window": [{"op": "lead", "field": "label", "as": "lead"}],
-        "sort": [{"field": "label_sorter", "order": "ascending"}]
-      },
-      {"calculate": "datum.lead === null ? '@{options.end_label.value}' : datum.lead", "as": "lead"},
-      {"calculate": "datum.label === '@{options.end_label.value}' ? 0 : datum.sum - datum.amount", "as": "previous_sum"},
-      {"calculate": "datum.label === '@{options.end_label.value}' ? datum.sum : datum.amount", "as": "amount"},
-      {
-        "calculate": "(datum.label !== '@{options.begin_label.value}' && datum.label !== '@{options.end_label.value}' && datum.amount > 0 ? '+' + format(datum.amount, '@{options.value_format.value}') : format(datum.amount, '@{options.value_format.value}'))", 
-        "as": "text_amount"
-      },
-      {"calculate": "(datum.sum + datum.previous_sum) / 2", "as": "center"},
-      {"calculate": "datum.sum < datum.previous_sum ? datum.sum : ''", "as": "sum_dec"},
-      {"calculate": "datum.sum > datum.previous_sum ? datum.sum : ''", "as": "sum_inc"}
-    ],
-    "params": [
-      {"name": "barSize", "value": @{options.bar_size.value}},
-      {"name": "ruleOffset", "expr": "barSize/2"}
-    ],
-    "encoding": {
-      "x": {
-        "field": "label",
-        "type": "ordinal",
-        "sort": {"field": "label_sorter", "order": "ascending"},
-        "axis": {
-          "format": @{fields.label.format},
-          "formatType": "holisticsFormat"
-        } 
-      }
-    },
-    "layer": [
-      {
-        "mark": {"type": "bar", "size": @{options.bar_size.value}},
-        "params": [
-          {
-            "name": "normalPointSelection", 
-            "select": {
-              "type": "point",
-              "toggle": "true",
-              "clear": "mouseup" 
-            }
-          }
-        ],
-        "encoding": {
-          "y": {"field": "previous_sum", "type": "quantitative", "format": @{fields.amount.format}, "formatType": "holisticsFormat"},
-          "y2": {"field": "sum"},
-          "color": {
-            "condition": [
-              {
-                "test": "datum.label === '@{options.begin_label.value}'",
-                "value": @{options.begin_end_color.value}
-              },
-              {"test": "datum.sum < datum.previous_sum", "value":  @{options.negative.value}}
-            ],
-            "value": @{options.positive.value}
-          },
-          "fillOpacity": {
-            "condition": {"param": "normalPointSelection", "value": 1},
-            "value": 0.3
-          },
-          "tooltip": [
-            {"field": "label", "title": @{fields.label.name}, "format": @{fields.label.format}, "formatType": "holisticsFormat"},
-            {"field": "amount", "title": @{fields.amount.name}, "format": @{options.value_format.value}},
-            {"field": "sum", "title": "Total", "format": @{options.value_format.value}}
-          ]
-        }
-      },
-      {
-        "transform": [
-          {"filter": "datum.lead === '@{options.end_label.value}'"},
-          {"calculate": "datum.sum / 2", "as": "center_end"}
-        ],
-        "encoding": {
-          "x": {
-            "field": "lead", 
-            "sort": null,
-            "axis": {
-              "format": @{fields.label.format},
-              "formatType": "holisticsFormat"
-            } 
-          },
-          "tooltip": [
-            {"field": "sum", "title": "Total", "format": @{options.value_format.value}}
-          ]
-        },
-        "layer": [
-          {
-            "mark": {"type": "bar", "size": @{options.bar_size.value}},
-            "encoding": {
-              "y": {"field": "sum", "type": "quantitative"},
-              "color": {"value": @{options.begin_end_color.value}}
-            }
-          },
-          {
-            "mark": {"type": "text", "fontWeight": "bold", "baseline": "middle"},
-            "encoding": {
-              "y": {"field": "center_end", "type": "quantitative"},
-              "text": {"field": "sum", "format": @{options.value_format.value}},
-              "color": {"value": @{options.begin_end_text.value}}
-            }
-          }
-        ]
-      },
-      {
-        "mark": {
-          "type": "rule",
-          "color": @{options.begin_end_color.value},
-          "opacity": 1,
-          "strokeWidth": 1,
-          "xOffset": {"expr": "ruleOffset"},
-          "x2Offset": {"expr": "-ruleOffset"}
-        },
-        "encoding": {
-          "x2": {"field": "lead"},
-          "y": {"field": "sum", "type": "quantitative"}
-        }
-      },
-      {
-        "mark": {"type": "text", "fontWeight": "bold", "baseline": "middle"},
-        "encoding": {
-          "y": {"field": "center", "type": "quantitative"},
-          "text": {"field": "text_amount", "type": "nominal"},
-          "color": {
-            "condition": [
-              {
-                "test": "datum.label === '@{options.begin_label.value}' || datum.label === '@{options.end_label.value}'",
-                "value": @{options.begin_end_text.value}
-              }
-            ],
-            "value": "white"
-          }
-        }
-      }
-    ],
-    "holisticsConfig": {
-      "crossFilterSignals": ["normalPointSelection"],
-    },
-    "config": {
-      "axis": {
-        "title": null,
-        "ticks": false,
-        "labelPadding": 10,
-        "labelFontSize": 11,
-        "labelColor": "#858B9E",
-        "labelAngle": 0,
-        "labelOverlap": "parity",
-        "labelLimit": 70,
-        "gridDash": [8, 3],
-        "gridColor": "#F4F6F8",
-        "domainColor": "#bec1cb"
-      },
-      "axisY": {
-        "domain": false
-      },
-      "view": {
-        "opacity": 0
-      },
-      "font": "Inter"
-    }
-  };;
-}
-```
+| Field        | Label      | Type        | Role |
+|--------------|------------|-------------|------|
+| `amount`     | Amount     | `measure`   | Signed change for the step. Positive values step up, negative values step down. Sorted descending (`apply_order: 1`). |
+| `label`      | Label      | `dimension` | Step name shown on the x-axis. Sorted ascending (`apply_order: 2`). |
+| `sort_order` | Sort Order | `dimension` | Numeric position that sets the left-to-right order of steps. Sorted ascending (`apply_order: 3`). |
+
+**Data requirements:** Pre-aggregate to one row per step; the template computes the running total in order of `sort_order`, so every step needs a distinct sort value. Use signed amounts (positive for increases, negative for decreases). The template appends a final total bar automatically, so you don't add a total row yourself.
+
+## Options
+
+| Option            | Default   | Effect |
+|-------------------|-----------|--------|
+| `begin_label`     | (empty)   | Label of the step treated as the starting bar, colored with the begin/end color. |
+| `end_label`       | `Total`   | Label used for the auto-generated final total bar. |
+| `bar_padding`     | `0.3`     | Inner spacing between bars, from 0 to 0.9. Higher values make thinner bars. |
+| `begin_end_color` | `#BDBDBD` | Fill color for the begin and end (total) bars. |
+| `begin_end_text`  | `black`   | Text color for the labels on the begin and end bars. |
+| `positive`        | `#58A65C` | Fill color for steps that increase the running total. |
+| `negative`        | `#D85140` | Fill color for steps that decrease the running total. |
+| `value_format`    | `$,.0f`   | Number format string applied to amounts and totals (d3-format syntax). |
+
+## Known limitations
+
+- **Sort order drives everything.** The template accumulates the running total in `sort_order` sequence, so missing or duplicate sort values produce a wrong or jumbled total. Give each step a unique, gap-free order.
+- **The chart generates the total bar; don't add your own.** It appends a final bar named by `end_label`, so including your own total row double-counts it.
+- **Label text identifies the begin and end bars.** A step becomes the start or total only when its `label` exactly matches `begin_label` or `end_label`. Mismatched text leaves those bars colored as ordinary steps.
+
+## Syntax reference
+
+### As-code syntax
+- [waterfall_chart.chart.aml](as-code/waterfall_chart.chart.aml)
+
+### Legacy syntax
+- [waterfall_chart.vgl.aml](legacy/waterfall_chart.vgl.aml)

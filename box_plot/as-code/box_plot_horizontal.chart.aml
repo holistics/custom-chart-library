@@ -1,0 +1,115 @@
+// Box Plot with horizontal boxes. Select a categorical and quantitative items
+// control colors, outliers, extent and font style
+
+CustomChartDef box_plot_horizontal {
+  label: 'Horizontal Box Plot'
+  icon: 'hicon:chart-boxplot'
+  description: 'To summarize the distribution of a quantitative value across categories by showing the median, quartiles, and range.'
+
+  fields {
+    field dimension {
+      label: 'Dimension'
+      type: 'dimension'
+      sort {
+        apply_order: 1
+        direction: 'asc'
+      }
+    }
+    field value {
+      label: 'Value'
+      type: 'dimension'
+      data_type: 'number'
+      sort {
+        apply_order: 2
+        direction: 'asc'
+      }
+    }
+  }
+
+  options {
+    option show_outliers {
+      type: 'toggle'
+      label: 'Show outliers'
+      default_value: false
+    }
+  }
+
+  template: @vgl {
+    "data": {
+      "values": @{values}
+    },
+
+    "encoding": {
+      "y": {
+        "field": @{fields.dimension.name},
+        "type": "nominal"
+      }
+    },
+
+    "layer": [
+      {
+        "mark": {
+          "type": "boxplot",
+          "extent": 1.5,
+          "size": 32,
+          "outliers": @{options.show_outliers.value},
+          "box": {"cornerRadius": 2},
+          "median": {"strokeWidth": 2},
+          "rule": {"size": 1.5},
+          "ticks": {"color": "#9CA3AF", "size": 10},
+          "tooltip": true
+        },
+        "encoding": {
+          "x": {
+            "field": @{fields.value.name},
+            "type": "quantitative",
+            "scale": {"zero": false},
+            "axis": {"format": @{fields.value.format}, "formatType": "holisticsFormat"}
+          },
+          "opacity": {
+            "condition": [
+              {"test": "!length(data('box_hover_store'))", "value": 1},
+              {"param": "box_hover", "empty": false, "value": 1}
+            ],
+            "value": 0.15
+          }
+        }
+      },
+      {
+        "transform": [
+          {
+            "aggregate": [
+              {"op": "min", "field": @{fields.value.name}, "as": "box_min"},
+              {"op": "q1", "field": @{fields.value.name}, "as": "box_q1"},
+              {"op": "median", "field": @{fields.value.name}, "as": "box_median"},
+              {"op": "q3", "field": @{fields.value.name}, "as": "box_q3"},
+              {"op": "max", "field": @{fields.value.name}, "as": "box_max"}
+            ],
+            "groupby": [@{fields.dimension.name}]
+          }
+        ],
+        "params": [
+          {"name": "box_hover", "select": {"type": "point", "fields": [@{fields.dimension.name}], "on": "mouseover", "clear": "mouseout"}},
+          {"name": "normalPointSelection", "select": {"type": "point", "fields": [@{fields.dimension.name}], "toggle": "true", "clear": "mouseup"}},
+          {"name": "hoverPointSelection", "select": {"type": "point", "fields": [@{fields.dimension.name}], "on": "mouseover", "clear": "mouseout"}}
+        ],
+        "mark": {"type": "rule", "size": 32, "opacity": 0, "tooltip": true},
+        "encoding": {
+          "tooltip": [
+            {"field": @{fields.dimension.name}, "type": "nominal", "title": "Category"},
+            {"field": "box_max", "type": "quantitative", "title": "Max", "format": @{fields.value.format}, "formatType": "holisticsFormat"},
+            {"field": "box_q3", "type": "quantitative", "title": "Q3", "format": @{fields.value.format}, "formatType": "holisticsFormat"},
+            {"field": "box_median", "type": "quantitative", "title": "Median", "format": @{fields.value.format}, "formatType": "holisticsFormat"},
+            {"field": "box_q1", "type": "quantitative", "title": "Q1", "format": @{fields.value.format}, "formatType": "holisticsFormat"},
+            {"field": "box_min", "type": "quantitative", "title": "Min", "format": @{fields.value.format}, "formatType": "holisticsFormat"}
+          ]
+        }
+      }
+    ],
+
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection"]
+    }
+  };;
+}

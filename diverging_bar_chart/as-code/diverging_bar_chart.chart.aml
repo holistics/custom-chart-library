@@ -1,0 +1,83 @@
+CustomChartDef diverging_bar_chart {
+  label: 'Diverging Bar Chart'
+  icon: 'hicon:chart-bar-2'
+  description: 'To split positive and negative values around a zero baseline, ideal for showing variance against budget or plan.'
+  fields {
+    field dimension {
+      label: 'Dimension'
+      type: 'dimension'
+      sort {
+        apply_order: 1
+        direction: 'asc'
+      }
+    }
+    field value {
+      label: 'Value'
+      type: 'measure'
+      sort {
+        apply_order: 2
+        direction: 'desc'
+      }
+    }
+  }
+  options {
+    option positive_color {
+      type: 'color-picker'
+      label: 'Positive color'
+      default_value: '#2cb67f'
+    }
+    option negative_color {
+      type: 'color-picker'
+      label: 'Negative color'
+      default_value: '#e5484d'
+    }
+    option show_tooltip {
+      type: 'toggle'
+      label: 'Show tooltip'
+      default_value: true
+    }
+  }
+  template: @vgl
+  {
+    "data": {"values": @{values}},
+    "params": [
+      {"name": "normalPointSelection", "select": {"type": "point", "fields": [@{fields.dimension.name}], "toggle": "true", "clear": "mouseup"}},
+      {"name": "hoverPointSelection", "select": {"type": "point", "fields": [@{fields.dimension.name}], "on": "mouseover", "clear": "mouseout"}}
+    ],
+    "mark": {
+      "type": "bar",
+      "tooltip": @{options.show_tooltip.value}
+    },
+    "encoding": {
+      "y": {
+        "field": @{fields.dimension.name},
+        "type": "nominal",
+        "sort": "-x"
+      },
+      "x": {
+        "field": @{fields.value.name},
+        "type": "quantitative",
+        "axis": {
+          "format": @{fields.value.format},
+          "formatType": "holisticsFormat"
+        }
+      },
+      "color": {
+        "condition": {
+          "test": "datum['@{fields.value.name}'] >= 0",
+          "value": @{options.positive_color.value}
+        },
+        "value": @{options.negative_color.value}
+      },
+      "fillOpacity": {
+        "condition": {"param": "hoverPointSelection", "value": 1},
+        "value": 0.15
+      }
+    },
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection"]
+    }
+  }
+  ;;
+}

@@ -1,0 +1,73 @@
+CustomChartDef table_heatmap {
+  label: 'Table Heatmap'
+  icon: 'hicon:chart-table-heatmap'
+  description: 'To reveal patterns across days and months by coloring each cell of a calendar grid by a measure value.'
+  fields {
+    field date {
+      label: 'Date'
+      type: 'dimension'
+      data_type: 'date'
+      sort {
+        apply_order: 1
+        direction: 'asc'
+      }
+    }
+    field value {
+      label: 'Value'
+      type: 'measure'
+      sort {
+        apply_order: 2
+        direction: 'desc'
+      }
+    }
+  }
+  template: @vgl {
+    "data": {
+      "values": @{values}
+    },
+    "params": [
+      {"name": "normalPointSelection", "select": {"type": "point", "encodings": ["x", "y"], "toggle": "true", "clear": "mouseup"}},
+      {"name": "hoverPointSelection", "select": {"type": "point", "encodings": ["x", "y"], "on": "mouseover", "clear": "mouseout"}}
+    ],
+    "mark": {
+      "type": "rect"
+    },
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection"]
+    },
+    "width": {"step": 13},
+    "height": {"step": 13},
+    "encoding": {
+      "x": {
+        "type": "ordinal",
+        "field": @{fields.date.name},
+        "title": "Day",
+        "timeUnit": "date",
+        "axis": {"format": "%e", "labelAngle": 0, "labelPadding": 8}
+      },
+      "y": {
+        "type": "ordinal",
+        "field": @{fields.date.name},
+        "title": "Month",
+        "timeUnit": "month",
+        "axis": {"labelPadding": 8}
+      },
+      "color": {
+        "type": "quantitative",
+        "field": @{fields.value.name},
+        "scale": {"scheme": "blues"},
+        "legend": {
+          "title": null
+        },
+        "aggregate": "max"
+      },
+      "tooltip": [
+        {"field": @{fields.date.name}, "type": "temporal", "timeUnit": "month", "title": "Month"},
+        {"field": @{fields.date.name}, "type": "temporal", "timeUnit": "date", "title": "Day"},
+        {"field": @{fields.value.name}, "type": "quantitative", "aggregate": "max", "title": "Value", "format": @{fields.value.format}, "formatType": "holisticsFormat"}
+      ]
+    }
+  }
+  ;;
+}

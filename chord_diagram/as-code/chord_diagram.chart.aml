@@ -1,0 +1,300 @@
+CustomChartDef chord_diagram {
+  label: 'Chord Diagram'
+  icon: 'hicon:chart-chord'
+  description: 'To visualize the flows, directions, and magnitude of source-target relationships between a set of categories.'
+  fields {
+    field source {
+      label: 'Source'
+      type: 'dimension'
+      sort {
+        apply_order: 1
+        direction: 'asc'
+      }
+    }
+    field target {
+      label: 'Target'
+      type: 'dimension'
+      sort {
+        apply_order: 2
+        direction: 'asc'
+      }
+    }
+    field value {
+      label: 'Value'
+      type: 'measure'
+      sort {
+        apply_order: 3
+        direction: 'desc'
+      }
+    }
+  }
+  options {
+    option pad_angle {
+      label: "Pad angle"
+      type: "number-input"
+      default_value: 0.05
+    }
+    option inner_radius_ratio {
+      label: "Inner radius ratio"
+      type: "number-input"
+      default_value: 0.9
+    }
+    option label_padding {
+      label: "Label padding"
+      type: "number-input"
+      default_value: 80
+    }
+    option show_tooltip {
+      label: "Show tooltip"
+      type: "toggle"
+      default_value: true
+    }
+  }
+  template: @vgl
+  {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "width": 600,
+    "height": 600,
+    "autosize": "none",
+    "data": [
+      {
+        "name": "table",
+        "values": @{values}
+      },
+      {
+        "name": "chordData",
+        "source": "table",
+        "transform": [
+          {
+            "type": "chord",
+            "source": "datum['@{fields.source.name}']",
+            "target": "datum['@{fields.target.name}']",
+            "value": "datum['@{fields.value.name}']",
+            "padAngle": @{options.pad_angle.value},
+            "innerRadiusRatio": @{options.inner_radius_ratio.value},
+            "labelPadding": @{options.label_padding.value}
+          }
+        ]
+      },
+      {
+        "name": "uniqueGroups",
+        "source": "chordData",
+        "transform": [
+          {
+            "type": "formula",
+            "expr": "datum.sourceGroup.id",
+            "as": "groupId"
+          },
+          {
+            "type": "formula",
+            "expr": "datum.sourceGroup.startAngle",
+            "as": "groupStartAngle"
+          },
+          {
+            "type": "formula",
+            "expr": "datum.sourceGroup.endAngle",
+            "as": "groupEndAngle"
+          },
+          {
+            "type": "formula",
+            "expr": "(datum.sourceGroup.startAngle + datum.sourceGroup.endAngle) / 2",
+            "as": "groupMidAngle"
+          },
+          {
+            "type": "formula",
+            "expr": "datum.sourceGroup.value",
+            "as": "groupValue"
+          },
+          {
+            "type": "aggregate",
+            "groupby": ["groupId", "groupStartAngle", "groupEndAngle", "groupMidAngle", "groupValue"]
+          }
+        ]
+      },
+      {
+        "name": "targetGroups",
+        "source": "chordData",
+        "transform": [
+          {
+            "type": "formula",
+            "expr": "datum.targetGroup.id",
+            "as": "groupId"
+          },
+          {
+            "type": "formula",
+            "expr": "datum.targetGroup.startAngle",
+            "as": "groupStartAngle"
+          },
+          {
+            "type": "formula",
+            "expr": "datum.targetGroup.endAngle",
+            "as": "groupEndAngle"
+          },
+          {
+            "type": "formula",
+            "expr": "(datum.targetGroup.startAngle + datum.targetGroup.endAngle) / 2",
+            "as": "groupMidAngle"
+          },
+          {
+            "type": "formula",
+            "expr": "datum.targetGroup.value",
+            "as": "groupValue"
+          },
+          {
+            "type": "aggregate",
+            "groupby": ["groupId", "groupStartAngle", "groupEndAngle", "groupMidAngle", "groupValue"]
+          }
+        ]
+      },
+      {
+        "name": "allGroups",
+        "source": ["uniqueGroups", "targetGroups"],
+        "transform": [
+          {
+            "type": "aggregate",
+            "groupby": ["groupId", "groupStartAngle", "groupEndAngle", "groupMidAngle", "groupValue"]
+          }
+        ]
+      }
+    ],
+    "signals": [
+      {
+        "name": "width",
+        "init": "(containerSize()[0])",
+        "on": [
+          {
+            "update": "(containerSize()[0])",
+            "events": "window:resize"
+          }
+        ]
+      },
+      {
+        "name": "height",
+        "init": "(containerSize()[1])",
+        "on": [
+          {
+            "update": "(containerSize()[1])",
+            "events": "window:resize"
+          }
+        ]
+      },
+      {
+        "name": "labelPadding",
+        "update": "@{options.label_padding.value}"
+      },
+      {
+        "name": "outerRadius",
+        "update": "max(min(width, height) / 2 - labelPadding, 10)"
+      },
+      {
+        "name": "innerRadius",
+        "update": "outerRadius * @{options.inner_radius_ratio.value}"
+      },
+      {
+        "name": "normalPointSelection",
+        "value": null,
+        "on": [
+          {"events": "@groupArc:click", "update": "{'@{fields.source.name}': [datum.groupId]}"},
+          {"events": "@chordRibbon:click", "update": "{'@{fields.source.name}': [datum.sourceGroup.id], '@{fields.target.name}': [datum.targetGroup.id]}"},
+          {"events": "click[!event.item]", "update": "null"}
+        ]
+      },
+      {
+        "name": "hoverPointSelection",
+        "value": null,
+        "on": [
+          {"events": "@groupArc:mouseover", "update": "{'@{fields.source.name}': [datum.groupId]}"},
+          {"events": "@chordRibbon:mouseover", "update": "{'@{fields.source.name}': [datum.sourceGroup.id], '@{fields.target.name}': [datum.targetGroup.id]}"},
+          {"events": "@groupArc:mouseout, @chordRibbon:mouseout", "update": "null"}
+        ]
+      }
+    ],
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection"]
+    },
+    "scales": [
+      {
+        "name": "color",
+        "type": "ordinal",
+        "range": "category",
+        "domain": {
+          "data": "allGroups",
+          "field": "groupId"
+        }
+      }
+    ],
+    "marks": [
+      {
+        "type": "group",
+        "encode": {
+          "update": {
+            "x": {"signal": "width / 2"},
+            "y": {"signal": "height / 2"}
+          }
+        },
+        "marks": [
+          {
+            "type": "arc",
+            "name": "groupArc",
+            "from": {"data": "allGroups"},
+            "encode": {
+              "update": {
+                "startAngle": {"field": "groupStartAngle"},
+                "endAngle": {"field": "groupEndAngle"},
+                "innerRadius": {"signal": "innerRadius"},
+                "outerRadius": {"signal": "outerRadius"},
+                "fill": {"scale": "color", "field": "groupId"},
+                "stroke": {"value": "#fff"},
+                "strokeWidth": {"value": 0.5},
+                "tooltip": {"signal": "@{options.show_tooltip.value} ? datum.groupId + ': ' + datum.groupValue : null"}
+              },
+              "hover": {
+                "fillOpacity": {"value": 0.8}
+              }
+            }
+          },
+          {
+            "type": "path",
+            "name": "chordRibbon",
+            "from": {"data": "chordData"},
+            "encode": {
+              "update": {
+                "path": {"field": "ribbonPath"},
+                "fill": {"scale": "color", "field": "sourceId"},
+                "fillOpacity": {"value": 0.67},
+                "stroke": {"value": "#fff"},
+                "strokeWidth": {"value": 0.5},
+                "tooltip": {"signal": "@{options.show_tooltip.value} ? datum.sourceId + ' → ' + datum.targetId + ': ' + datum.chordValue : null"}
+              },
+              "hover": {
+                "fillOpacity": {"value": 0.9}
+              }
+            }
+          },
+          {
+            "type": "text",
+            "style": "guide-label",
+            "name": "groupLabel",
+            "from": {"data": "allGroups"},
+            "encode": {
+              "update": {
+                "x": {"signal": "(outerRadius + 5) * cos((datum.groupMidAngle) - PI / 2)"},
+                "y": {"signal": "(outerRadius + 5) * sin((datum.groupMidAngle) - PI / 2)"},
+                "align": {"signal": "datum.groupMidAngle > PI ? 'right' : 'left'"},
+                "baseline": {"value": "middle"},
+                "fontWeight": {"value": "normal"},
+                "fontSize": {"value": 11},
+                "text": {"field": "groupId"},
+                "angle": {"signal": "datum.groupMidAngle > PI ? (datum.groupMidAngle - PI / 2) * 180 / PI - 180 : (datum.groupMidAngle - PI / 2) * 180 / PI"},
+                "limit": {"signal": "max(labelPadding - 10, 20)"},
+                "ellipsis": {"value": "…"},
+                "tooltip": {"signal": "@{options.show_tooltip.value} ? datum.groupId : null"}
+              }
+            }
+          }
+        ]
+      }
+    ]
+  };;
+}

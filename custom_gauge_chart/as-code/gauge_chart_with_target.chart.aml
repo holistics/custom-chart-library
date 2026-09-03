@@ -1,0 +1,256 @@
+CustomChartDef gauge_chart_with_target {
+  label: 'Gauge Chart with Target'
+  description: 'To show a metric as a needle on a gauge against its maximum, with a target marker to benchmark progress toward a goal.'
+  icon: 'hicon:chart-gauge-2'
+  fields {
+    field value {
+      label: 'Value'
+      type: 'measure'
+      sort {
+        apply_order: 1
+        direction: 'desc'
+      }
+    }
+    field max_value {
+      label: 'Max value'
+      type: 'measure'
+      sort {
+        apply_order: 2
+        direction: 'desc'
+      }
+    }
+    field target {
+      label: 'Target'
+      type: 'measure'
+      sort {
+        apply_order: 3
+        direction: 'desc'
+      }
+    }
+  }
+  options {
+    option needleScale {
+      label: 'Needle scaling factor'
+      type: 'number-input'
+      default_value: 0.8
+    }
+    option tickGaps {
+      label: 'Tick gaps'
+      type: 'number-input'
+      default_value: 0.25
+    }
+    option showLabels {
+      label: 'Show labels'
+      type: 'toggle'
+      default_value: true
+    }
+    option showTicks {
+      label: 'Show ticks'
+      type: 'toggle'
+      default_value: true
+    }
+    option show_tooltip {
+      label: 'Show tooltip'
+      type: 'toggle'
+      default_value: true
+    }
+    option targetColor {
+      label: 'Target color'
+      type: 'color-picker'
+      default_value: '#5fc93c'
+    }
+  }
+  template: @vgl
+{
+    "padding": {"left": 0, "top": 0, "right": 0, "bottom": 0},
+    "autosize": "fit",
+    "params": [
+      {"name": "centerX", "expr": "width/2"},
+      {"name": "centerY", "expr": "height/2 + outerRadius/2"},
+      {"name": "outerRadius", "expr": "radiusRef"},
+      {"name": "radiusRef", "expr": "min(width/2, height/2)"},
+      {"name": "innerRadius", "expr": "outerRadius - outerRadius * 0.25"},
+      {"name": "fontFactor", "expr": "radiusRef/5"},
+      {"name": "needleSize", "expr": "innerRadius * @{options.needleScale.value}"},
+      {"name": "valueFormat", "value": @{fields.value.format}},
+      {"name": "targetColor", "value": @{options.targetColor.value}}
+    ],
+    "data": {
+      "values": @{values}
+    },
+    "transform": [
+      {"calculate": "datum['@{fields.value.name}'] / datum['@{fields.max_value.name}']", "as": "percentage"},
+      {"calculate": "(datum.percentage) * (PI) + (-PI/2)", "as": "arcValue"},
+      {"calculate": "datum['@{fields.target.name}'] / datum['@{fields.max_value.name}']", "as": "targetPercentage"}
+    ],
+    "layer": [
+      // Base Gauge
+      {
+        "mark": {
+          "type": "arc",
+          "name": "gauge",
+          "theta": {"expr": "-PI/2"},
+          "theta2": {"expr": "PI/2"},
+          "x": {"expr": "centerX"},
+          "y": {"expr": "centerY"},
+          "innerRadius": {"expr": "innerRadius"},
+          "outerRadius": {"expr": "outerRadius"},
+          "fillOpacity": 0.18
+        }
+      },
+      // Value Gauge
+      {
+        "encoding": {
+          "tooltip": [
+            {"field": @{fields.value.name}, "title": "Value", "format": @{fields.value.format}, "formatType": "holisticsFormat"},
+            {"field": @{fields.target.name}, "title": "Target", "format": @{fields.target.format}, "formatType": "holisticsFormat"},
+            {"field": @{fields.max_value.name}, "title": "Max value", "format": @{fields.max_value.format}, "formatType": "holisticsFormat"}
+          ]
+        },
+        "mark": {
+          "type": "arc",
+          "name": "gauge",
+          "theta": {"expr": "-PI/2"},
+          "theta2": {"expr": "datum.arcValue"},
+          "x": {"expr": "centerX"},
+          "y": {"expr": "centerY"},
+          "innerRadius": {"expr": "innerRadius"},
+          "outerRadius": {"expr": "outerRadius"},
+          "tooltip": @{options.show_tooltip.value}
+        }
+      },
+      // Label
+      {
+        "transform": [
+          {"calculate": "[0, datum['@{fields.max_value.name}']]", "as": "label"},
+          {"flatten": ["label"]},
+          {"calculate": "datum.label === 0 ? 0 : 1", "as": "angle"}
+        ],
+        "encoding": {
+          "text": {
+            "field": "label",
+            "format": @{fields.max_value.format},
+            "formatType": "holisticsFormat"
+          },
+          "theta": {
+            "field": "angle",
+            "type": "quantitative",
+            "scale": {"domain": [0, 1], "range": [{"expr": "-PI/2"}, {"expr": "PI/2"}]}
+          }
+        },
+        "mark": {
+          "type": "text",
+          "fontWeight": 600,
+          "fontSize": {"expr": "fontFactor/2"},
+          "x": {"expr": "centerX"},
+          "y": {"expr": "centerY"},
+          "radius": {"expr": "outerRadius*1.05"},
+          "align": {"expr": "datum.angle === 0 ? 'right' : 'left'"},
+          "baseline": "alphabetic",
+          "opacity": {"expr": "@{options.showLabels.value} ? 1 : 0"}
+        }
+      },
+      // Main Value
+      {
+        "transform": [
+          {"calculate": "holisticsFormat(datum['@{fields.value.name}'], valueFormat) + ' (' + format(datum.percentage, '.0%') + ')'", "as": "mainValue"},
+          {
+            "calculate": "format(datum['@{fields.value.name}'] - datum['@{fields.target.name}'], ',.0f') + ' (' + format(datum['@{fields.value.name}']/datum['@{fields.target.name}'] - 1, '.0%') + ')'",
+            "as": "reference"
+          }
+        ],
+        "encoding": {
+          "text": {
+            "field": "mainValue"
+          }
+        },
+        "mark": {
+          "type": "text",
+          "fontWeight": 600,
+          "fontSize": {"expr": "fontFactor"},
+          "x": {"expr": "centerX"},
+          "y": {"expr": "centerY + fontFactor*1.2"},
+          "baseline": "alphabetic",
+          "align": "center"
+        }
+      },
+      // Needle
+      {
+        "encoding": {
+          "angle": {
+            "field": "percentage",
+            "type": "quantitative",
+            "scale": {"domain": [0, 1], "range": [-90, 90]}
+          }
+        },
+        "mark": {
+          "type": "point",
+          "shape": {
+            "expr": "'M 5 -2 A 7 7 0 0 1 -10 -7 L 0 -' + toString(needleSize) + ' Z'"
+          },
+          "size": 4,
+          "opacity": 1,
+
+          "x": {"expr": "centerX"},
+          "y": {"expr": "centerY"}
+        }
+      },
+      // Ticks
+      {
+        "data": {
+          "sequence": {
+            "as": "ticks",
+            "start": 0,
+            "stop": 1.01,
+            "step": @{options.tickGaps.value}
+          }
+        },
+        "encoding": {
+          "theta": {
+            "field": "ticks",
+            "type": "quantitative",
+            "scale": {"domain": [0, 1], "range": [{"expr": "-PI/2"}, {"expr": "PI/2"}]}
+          },
+          "theta2": {
+            "field": "ticks",
+            "type": "quantitative",
+            "scale": {"domain": [0, 1], "range": [{"expr": "-PI/2"}, {"expr": "PI/2"}]}
+          }
+        },
+        "mark": {
+          "type": "arc",
+          "outerRadius": {"expr": "outerRadius"},
+          "innerRadius": {"expr": "innerRadius"},
+          "x": {"expr": "centerX"},
+          "y": {"expr": "centerY"},
+          "opacity": {"expr": "@{options.showTicks.value} ? 1 : 0"}
+        }
+      },
+      // Target Gauge
+      {
+        "encoding": {
+          "theta": {
+            "field": "targetPercentage",
+            "type": "quantitative",
+            "scale": {"domain": [0, 1], "range": [{"expr": "-PI/2"}, {"expr": "PI/2"}]}
+          },
+          "theta2": {
+            "field": "targetPercentage",
+            "type": "quantitative",
+            "scale": {"domain": [0, 1], "range": [{"expr": "-PI/2"}, {"expr": "PI/2"}]}
+          }
+        },
+        "mark": {
+          "type": "arc",
+          "outerRadius": {"expr": "outerRadius*1.05"},
+          "innerRadius": {"expr": "innerRadius*0.95"},
+          "x": {"expr": "centerX"},
+          "y": {"expr": "centerY"},
+          "stroke": {"expr": "targetColor"},
+          "strokeWidth": 2
+        }
+      }
+    ]
+  }
+;;
+}

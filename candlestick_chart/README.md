@@ -1,119 +1,44 @@
-# Candlestick/OHLC Chart
+# Candlestick Chart
 
-## Goal
+A candlestick chart is essentially a sequence of box-plot-like bars placed side by side. It is commonly used to visualize the price movement of financial instruments such as forex, stocks, and bonds.
 
-From this dataset:
-![illustration](https://user-images.githubusercontent.com/27631976/188304837-bcec6b16-f358-471f-b8a6-760115438953.png)
+- **Good for:** open-high-low-close price movement over time, stock and forex trading sessions, daily or weekly trading ranges.
+- **Not great for:** a single value per period (use a line or bar chart), non-time-series data, or categories without high and low bounds.
 
-We will define a Candlestick/OHLC Custom Chart that looks like this:
-![illustration](https://github.com/holistics/custom-chart-library/assets/106363759/44ef7d51-f366-434d-b1bf-a8b753746994)
+<img alt="reporting-custom-chart/candlestick" title="reporting-custom-chart/candlestick" src="https://media.holistics.io/e39cf75c-candlestick-chart.png" width="900" height="600" />
 
-## Mechanism
+## Required fields
 
-By using 2 types of marks, `rule` (a straight line) and `bar` from Vega-lite, on a mixed chart (using `layer` property), we are able to create the candlestick shape.
+A Candlestick Chart expects exactly five fields. Each row of input is one period (one candle) with its open, high, low, and close values.
 
-To learn more about Vega-lite marks, see: https://vega.github.io/vega-lite/docs/mark.html#types. 
+| Field   | Label | Type        | Role |
+|---------|-------|-------------|------|
+| `date`  | Date  | `dimension` | Time period for each candle; sets the x position. Sorted ascending (`apply_order: 1`). |
+| `low`   | Low   | `measure`   | Lowest price; bottom of the wick. Sorted ascending (`apply_order: 2`). |
+| `high`  | High  | `measure`   | Highest price; top of the wick. Sorted ascending (`apply_order: 3`). |
+| `open`  | Open  | `measure`   | Opening price; one end of the candle body. Sorted ascending (`apply_order: 4`). |
+| `close` | Close | `measure`   | Closing price; the other end of the candle body. Sorted ascending (`apply_order: 5`). |
 
-To learn more about layer property, see: https://vega.github.io/vega-lite/docs/layer.html. 
+**Data requirements:** Pre-aggregate to one row per date; the template does not combine duplicate periods. Each row needs all four price values, and the template colors a candle with the green option when `open` is less than `close` (otherwise the red option).
 
-## Full-code
+## Options
 
-```javascript
+| Option         | Default | Effect |
+|----------------|---------|--------|
+| `tooltip`      | `true`  | Shows a tooltip on hover over each candle body. |
+| `green_candle` | `green` | Fill color for up periods, where `close` is higher than `open`. |
+| `red_candle`   | `red`   | Fill color for down periods, where `close` is at or below `open`. |
 
+## Known limitations
 
-CustomChart {
-  fields {
-    field date {
-      type: "dimension"
-      label: "Date field"
-    }
-    field low {
-      type: "dimension"
-      label: "Low price"
-    }
-    field high {
-      type: "dimension"
-      label: "High price"
-    }
-    field open {
-      type: "dimension"
-      label: "Open price"
-    }
-    field close {
-      type: "dimension"
-      label: "Close price"
-    }
-  }
+- **Every row needs all four price values.** Each candle reads `open`, `high`, `low`, and `close`. Rows missing any of these render incompletely.
+- **One row per period.** The template does not aggregate, so duplicate dates draw overlapping candles. Pre-aggregate to a single open-high-low-close row per period.
+- **The y-axis does not start at zero.** The scale is set to fit the price range (`zero: false`), which is right for price data but means bar lengths are not proportional to absolute value.
 
-  	options {
-		option tooltip {
-			type: 'toggle'
-			label: 'Show tooltip'
-			default_value: true
-		}
-		option green_candle {
-			type: 'color-picker'
-			label: 'Green candlestick'
-			default_value: 'green'
-		}
-    option red_candle {
-			type: 'color-picker'
-			label: 'Red candlestick'
-			default_value: 'red'
-		}
-	}
+## Syntax reference
 
-  template: @vgl
-  {
-    "data": {
-      "values": @{values}
-    },
-    "layer": [
-      {
-        "mark": "rule",
-        "encoding": {
-          "y": {"field": @{fields.low.name}},
-          "y2": {"field": @{fields.high.name}}
-        }
-      },
-      {
-        "mark": {
-          "type": "bar",
-          "tooltip": @{options.tooltip.value}
-        },
-        "encoding": {
-          "y": {"field": @{fields.open.name}},
-          "y2": {"field": @{fields.close.name}}
-        }
-      }
-    ],
-    "encoding": {
-      "x": {
-        "axis": {
-          "format": "%m/%d",
-          "labelAngle": -45
-        },
-        "type": "temporal",
-        "field": @{fields.date.name},
-      },
-      "y": {
-        "axis": {
-          "title": "Price"
-        },
-        "type": "quantitative",
-        "scale": {
-          "zero": false
-        }
-      },
-      "color": {
-        "condition": {
-          "test": "datum.@{fields.open.name} < datum.@{fields.close.name}",
-          "value": @{options.green_candle.value}
-        },
-        "value": @{options.red_candle.value}
-      }
-    }
-  };;
-}
+### As-code syntax
+- [candlestick_chart.chart.aml](as-code/candlestick_chart.chart.aml)
 
-```
+### Legacy syntax
+- [candlestick_chart.vgl.aml](legacy/candlestick_chart.vgl.aml)

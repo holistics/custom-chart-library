@@ -1,0 +1,173 @@
+CustomChartDef pareto_chart {
+  label: 'Pareto Chart'
+  icon: 'hicon:chart-combination-2'
+  description: 'To combine sorted bars with a cumulative percentage line and reveal which categories contribute most of the total.'
+  fields {
+    field dimension {
+      label: 'Dimension'
+      type: 'dimension'
+      sort {
+        apply_order: 1
+        direction: 'asc'
+      }
+    }
+    field value {
+      label: 'Value'
+      type: 'measure'
+      sort {
+        apply_order: 2
+        direction: 'desc'
+      }
+    }
+  }
+  options {
+    option line_color {
+      type: 'color-picker'
+      label: 'Cumulative line color'
+      default_value: '#e5484d'
+    }
+    option show_tooltip {
+      type: 'toggle'
+      label: 'Show tooltip'
+      default_value: true
+    }
+    option show_threshold {
+      type: 'toggle'
+      label: 'Show threshold line'
+      default_value: true
+    }
+
+    option threshold {
+      type: 'number-input'
+      label: 'Threshold (0 to 1)'
+      default_value: 0.8
+    }
+  }
+  template: @vgl
+  {
+    "data": {"values": @{values}},
+    "transform": [
+      {
+        "sort": [{"field": @{fields.value.name}, "order": "descending"}],
+        "window": [{"op": "sum", "field": @{fields.value.name}, "as": "cumulative_sum"}],
+        "frame": [null, 0]
+      },
+      {
+        "joinaggregate": [{"op": "sum", "field": @{fields.value.name}, "as": "grand_total"}]
+      },
+      {
+        "calculate": "datum.cumulative_sum / datum.grand_total",
+        "as": "cumulative_percent"
+      },
+      {
+        "calculate": "datum['@{fields.value.name}'] / datum.grand_total",
+        "as": "item_share"
+      },
+      {
+        "joinaggregate": [{"op": "min", "field": @{fields.value.name}, "as": "min_value"}]
+      },
+      {
+        "calculate": "datum['@{fields.value.name}'] === datum.min_value ? (format(@{options.threshold.value}, '.0%') + ' of total') : ''",
+        "as": "threshold_label"
+      }
+    ],
+    "encoding": {
+      "x": {
+        "field": @{fields.dimension.name},
+        "type": "nominal",
+        "sort": {"field": @{fields.value.name}, "order": "descending"}
+      }
+    },
+    "layer": [
+      {
+        "mark": {"type": "bar", "tooltip": @{options.show_tooltip.value}},
+        "params": [
+          {"name": "normalPointSelection", "select": {"type": "point", "fields": [@{fields.dimension.name}], "toggle": "true", "clear": "mouseup"}},
+          {"name": "hoverPointSelection", "select": {"type": "point", "fields": [@{fields.dimension.name}], "on": "mouseover", "clear": "mouseout"}}
+        ],
+        "encoding": {
+          "y": {
+            "field": @{fields.value.name},
+            "type": "quantitative",
+            "title": null,
+            "axis": {
+              "format": @{fields.value.format},
+              "formatType": "holisticsFormat"
+            }
+          },
+          "fillOpacity": {
+            "condition": {"param": "hoverPointSelection", "value": 1},
+            "value": 0.15
+          }
+        }
+      },
+      {
+        "layer": [
+      {
+        "mark": {
+          "type": "line",
+          "color": @{options.line_color.value},
+          "tooltip": @{options.show_tooltip.value}
+        },
+        "encoding": {
+          "y": {
+            "field": "cumulative_percent",
+            "type": "quantitative",
+            "axis": {
+              "title": "Cumulative %",
+              "orient": "right",
+              "grid": false
+            },
+            "scale": {"domain": [0, 1]}
+          },
+        }
+      },
+      {
+        "mark": {"type": "point", "filled": true, "size": 50, "fill": @{options.line_color.value}, "color": @{options.line_color.value}, "tooltip": @{options.show_tooltip.value}},
+        "encoding": {
+          "y": {"field": "cumulative_percent", "type": "quantitative"},
+          "opacity": {
+            "condition": {"param": "hoverPointSelection", "value": 1},
+            "value": 0.15
+          }
+        }
+      },
+      {
+        "mark": {
+          "type": "rule",
+          "strokeDash": [4, 4],
+          "color": "#9ba1a6",
+          "opacity": {"expr": "@{options.show_threshold.value} ? 1 : 0"}
+        },
+        "encoding": {
+          "x": null,
+          "y": {"datum": @{options.threshold.value}, "type": "quantitative"}
+        }
+      },
+      {
+        "mark": {
+          "type": "text",
+          "align": "right",
+          "baseline": "bottom",
+          "dx": 6,
+          "dy": -5,
+          "fontSize": 12,
+          "color": "#9ba1a6",
+          "opacity": {"expr": "@{options.show_threshold.value} ? 1 : 0"}
+        },
+        "encoding": {
+          "y": {"datum": @{options.threshold.value}, "type": "quantitative"},
+          "text": {"field": "threshold_label"}
+        }
+      }
+        ]
+      }
+    ],
+    "resolve": {"scale": {"y": "independent"}},
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection"]
+    }
+  }
+  ;;
+}

@@ -1,0 +1,251 @@
+CustomChartDef bullet_chart {
+  label: 'Bullet Chart'
+  icon: 'hicon:chart-bar-2'
+  description: 'To compare target, pace, and current values across categories in a compact bullet chart layout.'
+
+  fields {
+    field dimension {
+      label: 'Dimension'
+      type: 'dimension'
+      sort {
+        apply_order: 1
+        direction: 'asc'
+      }
+    }
+
+    field target {
+      label: 'Target'
+      type: 'measure'
+      sort {
+        apply_order: 2
+        direction: 'desc'
+      }
+    }
+
+    field pace {
+      label: 'Pace'
+      type: 'measure'
+      sort {
+        apply_order: 3
+        direction: 'desc'
+      }
+    }
+
+    field current {
+      label: 'Current'
+      type: 'measure'
+      sort {
+        apply_order: 4
+        direction: 'desc'
+      }
+    }
+  }
+
+  options {
+    option current_bar_height {
+      label: 'Current bar height'
+      type: 'number-input'
+      default_value: 8
+    }
+
+    option target_tick_thickness {
+      label: 'Target tick thickness'
+      type: 'number-input'
+      default_value: 2
+    }
+  }
+
+  template: @vgl {
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "description": "A reusable target-vs-pace-vs-current bullet-style comparison chart.",
+    "data": {"values": @{values}},
+    "transform": [
+      {
+        "calculate": "datum['@{fields.target.name}']",
+        "as": "target_value"
+      },
+      {
+        "calculate": "datum['@{fields.pace.name}']",
+        "as": "pace_value"
+      },
+      {
+        "calculate": "datum['@{fields.current.name}']",
+        "as": "current_value"
+      },
+      {
+        "calculate": "datum['@{fields.dimension.name}']",
+        "as": "category_value"
+      },
+      {
+        "fold": ["target_value", "pace_value", "current_value"],
+        "as": ["series_key", "series_value"]
+      },
+      {
+        "calculate": "{'target_value':'Target','pace_value':'Pace','current_value':'Current'}[datum.series_key]",
+        "as": "series_label"
+      },
+      {
+        "calculate": "indexof(['Target','Pace','Current'], datum.series_label)",
+        "as": "series_order"
+      },
+      {
+        "calculate": "'series'",
+        "as": "series_const"
+      }
+    ],
+    "encoding": {
+      "y": {
+        "field": "category_value",
+        "type": "ordinal"
+      },
+      "x": {
+        "field": "series_value",
+        "type": "quantitative",
+        "stack": null
+      },
+      "order": {
+        "field": "series_order",
+        "type": "quantitative",
+        "sort": "ascending"
+      },
+      "tooltip": [
+        {"field": "category_value", "type": "nominal", "title": "Category"},
+        {"field": "current_value", "type": "quantitative", "title": "Current", "format": @{fields.current.format}, "formatType": "holisticsFormat"},
+        {"field": "pace_value", "type": "quantitative", "title": "Pace", "format": @{fields.pace.format}, "formatType": "holisticsFormat"},
+        {"field": "target_value", "type": "quantitative", "title": "Target", "format": @{fields.target.format}, "formatType": "holisticsFormat"}
+      ]
+    },
+    "layer": [
+      {
+        "mark": "bar",
+        "params": [
+          {
+            "name": "series_hover",
+            "select": {
+              "type": "point",
+              "fields": ["series_label"]
+            },
+            "bind": {"legend": "pointerover"}
+          },
+          {"name": "normalPointSelection", "select": {"type": "point", "toggle": "true", "clear": "mouseup"}},
+          {"name": "hoverPointSelection", "select": {"type": "point", "on": "mouseover", "clear": "mouseout"}}
+        ],
+        "encoding": {
+          "opacity": {
+            "field": "series_label",
+            "type": "nominal",
+            "scale": {
+              "domain": ["Current", "Pace", "Target"],
+              "range": [1, 0.18, 0.72]
+            },
+            "legend": {
+              "orient": "top",
+              "symbolType": "square",
+              "symbolSize": 80,
+              "labelLimit": 140
+            }
+          },
+          "fillOpacity": {"value": 0}
+        }
+      },
+      {
+        "transform": [
+          {
+            "filter": "datum.series_label === 'Pace'"
+          }
+        ],
+        "mark": {
+          "type": "bar",
+          "tooltip": true
+        },
+        "encoding": {
+          "color": {
+            "field": "series_const",
+            "type": "nominal",
+            "scale": {"range": "category"},
+            "legend": null
+          },
+          "opacity": {
+            "condition": [
+              {"param": "bar_hover", "empty": false, "value": 0.18},
+              {"test": "length(data('bar_hover_store'))", "value": 0.045},
+              {"param": "series_hover", "value": 0.18}
+            ],
+            "value": 0.12
+          }
+        }
+      },
+      {
+        "transform": [
+          {
+            "filter": "datum.series_label === 'Current'"
+          }
+        ],
+        "mark": {
+          "type": "bar",
+          "height": @{options.current_bar_height.value},
+          "tooltip": true
+        },
+        "encoding": {
+          "color": {
+            "field": "series_const",
+            "type": "nominal",
+            "scale": {"range": "category"},
+            "legend": null
+          },
+          "opacity": {
+            "condition": [
+              {"param": "bar_hover", "empty": false, "value": 1},
+              {"test": "length(data('bar_hover_store'))", "value": 0.25},
+              {"param": "series_hover", "value": 1}
+            ],
+            "value": 0.12
+          }
+        }
+      },
+      {
+        "transform": [
+          {
+            "filter": "datum.series_label === 'Target'"
+          }
+        ],
+        "mark": {
+          "type": "tick",
+          "size": 22,
+          "thickness": @{options.target_tick_thickness.value},
+          "tooltip": true
+        },
+        "encoding": {
+          "color": {
+            "field": "series_const",
+            "type": "nominal",
+            "scale": {"range": "category"},
+            "legend": null
+          },
+          "opacity": {
+            "condition": [
+              {"param": "bar_hover", "empty": false, "value": 0.72},
+              {"test": "length(data('bar_hover_store'))", "value": 0.18},
+              {"param": "series_hover", "value": 0.72}
+            ],
+            "value": 0.12
+          }
+        }
+      },
+      {
+        "mark": "bar",
+        "params": [
+          {"name": "bar_hover", "select": {"type": "point", "fields": ["category_value"], "on": "mouseover", "clear": "mouseout"}}
+        ],
+        "encoding": {
+          "opacity": {"value": 0},
+          "fillOpacity": {"value": 0}
+        }
+      }
+    ],
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection"]
+    }
+  };;
+}

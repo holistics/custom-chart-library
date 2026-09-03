@@ -1,0 +1,324 @@
+CustomChartDef sunburst_chart_three_level {
+  label: 'Sunburst Chart (3 levels)'
+  icon: 'hicon:chart-pie-2'
+  description: 'To show a three-level hierarchy as concentric rings, with categories on the inner ring, subcategories in the middle ring, and items on the outer ring.'
+  fields {
+    field level_1 {
+      label: 'Level 1'
+      type: 'dimension'
+      sort {
+        apply_order: 1
+        direction: 'asc'
+      }
+    }
+    field level_2 {
+      label: 'Level 2'
+      type: 'dimension'
+      sort {
+        apply_order: 2
+        direction: 'asc'
+      }
+    }
+    field level_3 {
+      label: 'Level 3'
+      type: 'dimension'
+      sort {
+        apply_order: 3
+        direction: 'asc'
+      }
+    }
+    field value {
+      label: 'Value'
+      type: 'measure'
+      sort {
+        apply_order: 4
+        direction: 'desc'
+      }
+    }
+  }
+  options {
+    option donut_hole {
+      type: 'select'
+      label: 'Center hole size'
+      options: [
+        0,
+        0.2,
+        0.35,
+        0.5
+      ]
+      default_value: 0.35
+    }
+    option show_tooltip {
+      type: 'toggle'
+      label: 'Show tooltip'
+      default_value: true
+    }
+  }
+  template: @vg {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "signals": [
+      {
+        "name": "width",
+        "init": "containerSize()[0] - 5",
+        "on": [{ "events": "window:resize", "update": "containerSize()[0] - 5" }]
+      },
+      {
+        "name": "height",
+        "init": "containerSize()[1] - 5",
+        "on": [{ "events": "window:resize", "update": "containerSize()[1] - 5" }]
+      },
+      {"name": "radius", "update": "min(width, height) / 2"},
+      {"name": "holeR", "update": "radius * @{options.donut_hole.value}"},
+      {"name": "ring1End", "update": "holeR + (radius - holeR) * 0.38"},
+      {"name": "ring2End", "update": "holeR + (radius - holeR) * 0.7"},
+      {"name": "grandTotal", "update": "length(data('cats')) ? data('cats')[0].total : 0"},
+      {
+        "name": "hovered",
+        "value": null,
+        "on": [
+          {
+            "events": "@catArc:mouseover",
+            "update": "{kind: 'category', category: datum.category, subcategory: null, label: datum.category, amount: datum.amount, share: datum.amount / datum.total}"
+          },
+          {
+            "events": "@subArc:mouseover",
+            "update": "{kind: 'subcategory', category: datum.category, subcategory: datum.subcategory, label: datum.subcategory, amount: datum.amount, share: datum.amount / datum.total}"
+          },
+          {
+            "events": "@leafArc:mouseover",
+            "update": "{kind: 'item', category: datum.category, subcategory: datum.subcategory, label: datum.item, amount: datum.amount, share: datum.amount / datum.total}"
+          },
+          {"events": "@catArc:mouseout, @subArc:mouseout, @leafArc:mouseout", "update": "null"}
+        ]
+      },
+      {
+        "name": "normalPointSelection",
+        "value": null,
+        "on": [
+          {"events": "@catArc:click", "update": "{'@{fields.level_1.name}': [datum.category]}"},
+          {"events": "@subArc:click", "update": "{'@{fields.level_2.name}': [datum.subcategory]}"},
+          {"events": "@leafArc:click", "update": "{'@{fields.level_3.name}': [datum.item]}"},
+          {"events": "click[!event.item]", "update": "null"}
+        ]
+      },
+      {
+        "name": "hoverPointSelection",
+        "value": null,
+        "on": [
+          {"events": "@catArc:mouseover", "update": "{'@{fields.level_1.name}': [datum.category]}"},
+          {"events": "@subArc:mouseover", "update": "{'@{fields.level_2.name}': [datum.subcategory]}"},
+          {"events": "@leafArc:mouseover", "update": "{'@{fields.level_3.name}': [datum.item]}"},
+          {"events": "@catArc:mouseout, @subArc:mouseout, @leafArc:mouseout", "update": "null"}
+        ]
+      }
+    ],
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection"]
+    },
+    "data": [
+      {
+        "name": "leaves",
+        "values": @{values},
+        "transform": [
+          {"type": "formula", "expr": "datum['@{fields.level_1.name}']", "as": "category"},
+          {"type": "formula", "expr": "datum['@{fields.level_2.name}']", "as": "subcategory"},
+          {"type": "formula", "expr": "datum['@{fields.level_3.name}']", "as": "item"},
+          {"type": "formula", "expr": "datum['@{fields.value.name}']", "as": "amount"},
+          {"type": "filter", "expr": "datum.amount != null && datum.amount > 0"},
+          {
+            "type": "aggregate",
+            "groupby": ["category", "subcategory", "item"],
+            "fields": ["amount"],
+            "ops": ["sum"],
+            "as": ["amount"]
+          },
+          {"type": "collect", "sort": {"field": ["category", "subcategory", "item"]}},
+          {"type": "stack", "field": "amount", "as": ["s0", "s1"]},
+          {"type": "joinaggregate", "fields": ["amount"], "ops": ["sum"], "as": ["total"]},
+          {
+            "type": "joinaggregate",
+            "fields": ["amount"],
+            "ops": ["sum"],
+            "as": ["sub_total"],
+            "groupby": ["category", "subcategory"]
+          },
+          {"type": "formula", "expr": "datum.s0 / datum.total * 2 * PI", "as": "a0"},
+          {"type": "formula", "expr": "datum.s1 / datum.total * 2 * PI", "as": "a1"}
+        ]
+      },
+      {
+        "name": "subs",
+        "source": "leaves",
+        "transform": [
+          {
+            "type": "aggregate",
+            "groupby": ["category", "subcategory"],
+            "fields": ["amount"],
+            "ops": ["sum"],
+            "as": ["amount"]
+          },
+          {"type": "collect", "sort": {"field": ["category", "subcategory"]}},
+          {"type": "stack", "field": "amount", "as": ["s0", "s1"]},
+          {"type": "joinaggregate", "fields": ["amount"], "ops": ["sum"], "as": ["total"]},
+          {
+            "type": "joinaggregate",
+            "fields": ["amount"],
+            "ops": ["sum"],
+            "as": ["cat_total"],
+            "groupby": ["category"]
+          },
+          {"type": "formula", "expr": "datum.s0 / datum.total * 2 * PI", "as": "a0"},
+          {"type": "formula", "expr": "datum.s1 / datum.total * 2 * PI", "as": "a1"}
+        ]
+      },
+      {
+        "name": "cats",
+        "source": "leaves",
+        "transform": [
+          {
+            "type": "aggregate",
+            "groupby": ["category"],
+            "fields": ["amount"],
+            "ops": ["sum"],
+            "as": ["amount"]
+          },
+          {"type": "collect", "sort": {"field": "category"}},
+          {"type": "stack", "field": "amount", "as": ["s0", "s1"]},
+          {"type": "joinaggregate", "fields": ["amount"], "ops": ["sum"], "as": ["total"]},
+          {"type": "formula", "expr": "datum.s0 / datum.total * 2 * PI", "as": "a0"},
+          {"type": "formula", "expr": "datum.s1 / datum.total * 2 * PI", "as": "a1"}
+        ]
+      }
+    ],
+    "scales": [
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": {"data": "cats", "field": "category"},
+        "range": "category"
+      }
+    ],
+    "marks": [
+      {
+        "type": "arc",
+        "name": "catArc",
+        "from": {"data": "cats"},
+        "encode": {
+          "update": {
+            "x": {"signal": "width / 2"},
+            "y": {"signal": "height / 2"},
+            "startAngle": {"field": "a0"},
+            "endAngle": {"field": "a1"},
+            "innerRadius": {"signal": "holeR"},
+            "outerRadius": {"signal": "ring1End"},
+            "fill": {"scale": "color", "field": "category"},
+            "fillOpacity": {
+              "signal": "hovered === null || hovered.category === datum.category ? 1 : 0.3"
+            },
+            "stroke": {"value": "white"},
+            "strokeWidth": {"value": 1.5},
+            "tooltip": {
+              "signal": "@{options.show_tooltip.value} ? {'Category': datum.category, 'Value': format(datum.amount, ','), 'Share of Total': format(datum.amount / datum.total, '.1%')} : null"
+            }
+          }
+        }
+      },
+      {
+        "type": "arc",
+        "name": "subArc",
+        "from": {"data": "subs"},
+        "encode": {
+          "update": {
+            "x": {"signal": "width / 2"},
+            "y": {"signal": "height / 2"},
+            "startAngle": {"field": "a0"},
+            "endAngle": {"field": "a1"},
+            "innerRadius": {"signal": "ring1End + 1"},
+            "outerRadius": {"signal": "ring2End"},
+            "fill": {"scale": "color", "field": "category"},
+            "fillOpacity": {
+              "signal": "hovered === null ? 0.85 : (hovered.category !== datum.category ? 0.2 : (hovered.subcategory === null ? 0.9 : (hovered.subcategory === datum.subcategory ? 1 : 0.5)))"
+            },
+            "stroke": {"value": "white"},
+            "strokeWidth": {"value": 1.2},
+            "tooltip": {
+              "signal": "@{options.show_tooltip.value} ? {'Subcategory': datum.subcategory, 'Category': datum.category, 'Value': format(datum.amount, ','), 'Share of Total': format(datum.amount / datum.total, '.1%'), 'Share of Category': format(datum.amount / datum.cat_total, '.1%')} : null"
+            }
+          }
+        }
+      },
+      {
+        "type": "arc",
+        "name": "leafArc",
+        "from": {"data": "leaves"},
+        "encode": {
+          "update": {
+            "x": {"signal": "width / 2"},
+            "y": {"signal": "height / 2"},
+            "startAngle": {"field": "a0"},
+            "endAngle": {"field": "a1"},
+            "innerRadius": {"signal": "ring2End + 1"},
+            "outerRadius": {"signal": "radius"},
+            "fill": {"scale": "color", "field": "category"},
+            "fillOpacity": {
+              "signal": "hovered === null ? 0.65 : (hovered.category !== datum.category ? 0.15 : (hovered.kind === 'item' ? (hovered.label === datum.item ? 1 : 0.45) : (hovered.kind === 'subcategory' ? (hovered.subcategory === datum.subcategory ? 0.95 : 0.4) : 0.8)))"
+            },
+            "stroke": {"value": "white"},
+            "strokeWidth": {"value": 1},
+            "tooltip": {
+              "signal": "@{options.show_tooltip.value} ? {'Item': datum.item, 'Subcategory': datum.subcategory, 'Category': datum.category, 'Value': format(datum.amount, ','), 'Share of Total': format(datum.amount / datum.total, '.1%'), 'Share of Subcategory': format(datum.amount / datum.sub_total, '.1%')} : null"
+            }
+          }
+        }
+      },
+      {
+        "type": "text",
+        "style": "guide-label",
+        "interactive": false,
+        "encode": {
+          "update": {
+            "x": {"signal": "width / 2"},
+            "y": {"signal": "height / 2 - 14"},
+            "align": {"value": "center"},
+            "text": {"signal": "hovered === null ? 'Total' : hovered.label"},
+            "limit": {"signal": "holeR * 1.7"},
+            "fontSize": {"value": 13},
+            "fontWeight": {"value": 600},
+            "opacity": {"signal": "holeR > 30 ? 1 : 0"}
+          }
+        }
+      },
+      {
+        "type": "text",
+        "interactive": false,
+        "encode": {
+          "update": {
+            "x": {"signal": "width / 2"},
+            "y": {"signal": "height / 2 + 8"},
+            "align": {"value": "center"},
+            "text": {"signal": "format(hovered === null ? grandTotal : hovered.amount, ',')"},
+            "fontSize": {"value": 16},
+            "fontWeight": {"value": 700},
+            "opacity": {"signal": "holeR > 30 ? 1 : 0"}
+          }
+        }
+      },
+      {
+        "type": "text",
+        "style": "guide-label",
+        "interactive": false,
+        "encode": {
+          "update": {
+            "x": {"signal": "width / 2"},
+            "y": {"signal": "height / 2 + 28"},
+            "align": {"value": "center"},
+            "text": {"signal": "hovered === null ? '' : format(hovered.share, '.1%') + ' of total'"},
+            "fontSize": {"value": 11},
+            "opacity": {"signal": "holeR > 30 ? 1 : 0"}
+          }
+        }
+      }
+    ]
+  };;
+}

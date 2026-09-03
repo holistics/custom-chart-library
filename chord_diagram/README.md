@@ -1,274 +1,46 @@
 # Chord Diagram
 
-## Goal
-In this guide, we will create a **Chord Diagram** to visualize the inter-relationships and flows between different entities, by showing weighted connections (chords) between nodes arranged in a circular layout.
+A chord diagram visualizes flows and their magnitude between a set of categories. Each category is an arc around a circle, and curved bands (chords) connect them: the arc size reflects a category's total volume, and a chord's width reflects the strength of connection between two categories.
 
-<img width="2028" height="1297" alt="image" src="https://github.com/user-attachments/assets/68060210-8fea-4cab-986d-475d1014867c" />
+- **Good for:** many-to-many relationships between categories, movement or flow between groups, source-target pairs with values (country-to-country trade, customer movement between subscription plans).
+- **Not great for:** one-way funnels or journeys (use a Sankey Chart), hierarchical part-to-whole data (use a Treemap or Sunburst Chart), or more than ~15 categories around the ring.
 
-## Sample Data
+<img width="2028" height="1297" alt="Chord Diagram" src="https://media.holistics.io/7465db80-chord-diagram.png" />
+
+## Required fields
+
+A Chord Diagram expects exactly three fields. Each row of input is one directed connection from a source category to a target category.
+
+| Field    | Label  | Type        | Role |
+|----------|--------|-------------|------|
+| `source` | Source | `dimension` | Originating category of the connection. Sorted ascending (`apply_order: 1`). |
+| `target` | Target | `dimension` | Destination category of the connection. Sorted ascending (`apply_order: 2`). |
+| `value`  | Value  | `measure`   | Connection strength; sets the chord width and contributes to each arc's size. Sorted descending (`apply_order: 3`). |
+
+**Data requirements:** Pre-aggregate to one row per source-target pair (for example, `SUM(value)` grouped by `source` and `target`); the `chord` transform does not combine duplicate pairs. Categories that appear as both source and target share a single arc on the ring.
+
+## Options
+
+| Option               | Default  | Effect |
+|----------------------|----------|--------|
+| `pad_angle`          | `0.05`   | Gap in radians between each arc segment around the ring. |
+| `inner_radius_ratio` | `0.9`    | Fraction of the outer radius that the ribbon inner edge fills. |
+| `label_padding`      | `80`     | Pixels reserved outside the arc for category labels. |
+| `show_tooltip`       | `true`   | Shows a tooltip with category or flow details on hover. |
+
+## Known limitations
+
+- **Pre-aggregate first.** The `chord` transform does not sum duplicate source-target pairs, so repeated rows skew arc and chord sizes. Aggregate to one row per pair before charting.
+- **Readability drops past ~15 categories.** Beyond roughly 15 categories around the ring the chords overlap and labels collide. Group small categories into an "Other" bucket first.
+
+## Sample data
 
 💡 Sankey sample data can be reused: [sankey-sample-data.csv](https://github.com/holistics/custom-chart-library/files/11058203/sankey-sample-data.csv)
 
-## Full Code Example
+## Syntax reference
 
-```javascript
-CustomChart {
-  fields {
-    field source {
-      type: "dimension"
-      label: "Source"
-      data_type: "string"
-    }
-    field target {
-      type: "dimension"
-      label: "Target"
-      data_type: "string"
-    }
-    field value {
-      type: "measure"
-      label: "Flow value"
-    }
-  }
-  options {
-    option pad_angle {
-      label: "Pad Angle"
-      type: "number-input"
-      default_value: 0.05
-    }
-    option inner_radius_ratio {
-      label: "Inner Radius Ratio"
-      type: "number-input"
-      default_value: 0.9
-    }
-    option label_padding {
-      label: "Label Padding"
-      type: "number-input"
-      default_value: 80
-    }
-  }
-  template: @vgl
-  {
-    "$schema": "https://vega.github.io/schema/vega/v5.json",
-    "width": 600,
-    "height": 600,
-    "autosize": "none",
-    "data": [
-      {
-        "name": "table",
-        "values": @{values}
-      },
-      {
-        "name": "chordData",
-        "source": "table",
-        "transform": [
-          {
-            "type": "chord",
-            "source": "datum['@{fields.source.name}']",
-            "target": "datum['@{fields.target.name}']",
-            "value": "datum['@{fields.value.name}']",
-            "padAngle": @{options.pad_angle.value},
-            "innerRadiusRatio": @{options.inner_radius_ratio.value},
-            "labelPadding": @{options.label_padding.value}
-          }
-        ]
-      },
-      {
-        "name": "uniqueGroups",
-        "source": "chordData",
-        "transform": [
-          {
-            "type": "formula",
-            "expr": "datum.sourceGroup.id",
-            "as": "groupId"
-          },
-          {
-            "type": "formula",
-            "expr": "datum.sourceGroup.startAngle",
-            "as": "groupStartAngle"
-          },
-          {
-            "type": "formula",
-            "expr": "datum.sourceGroup.endAngle",
-            "as": "groupEndAngle"
-          },
-          {
-            "type": "formula",
-            "expr": "(datum.sourceGroup.startAngle + datum.sourceGroup.endAngle) / 2",
-            "as": "groupMidAngle"
-          },
-          {
-            "type": "formula",
-            "expr": "datum.sourceGroup.value",
-            "as": "groupValue"
-          },
-          {
-            "type": "aggregate",
-            "groupby": ["groupId", "groupStartAngle", "groupEndAngle", "groupMidAngle", "groupValue"]
-          }
-        ]
-      },
-      {
-        "name": "targetGroups",
-        "source": "chordData",
-        "transform": [
-          {
-            "type": "formula",
-            "expr": "datum.targetGroup.id",
-            "as": "groupId"
-          },
-          {
-            "type": "formula",
-            "expr": "datum.targetGroup.startAngle",
-            "as": "groupStartAngle"
-          },
-          {
-            "type": "formula",
-            "expr": "datum.targetGroup.endAngle",
-            "as": "groupEndAngle"
-          },
-          {
-            "type": "formula",
-            "expr": "(datum.targetGroup.startAngle + datum.targetGroup.endAngle) / 2",
-            "as": "groupMidAngle"
-          },
-          {
-            "type": "formula",
-            "expr": "datum.targetGroup.value",
-            "as": "groupValue"
-          },
-          {
-            "type": "aggregate",
-            "groupby": ["groupId", "groupStartAngle", "groupEndAngle", "groupMidAngle", "groupValue"]
-          }
-        ]
-      },
-      {
-        "name": "allGroups",
-        "source": ["uniqueGroups", "targetGroups"],
-        "transform": [
-          {
-            "type": "aggregate",
-            "groupby": ["groupId", "groupStartAngle", "groupEndAngle", "groupMidAngle", "groupValue"]
-          }
-        ]
-      }
-    ],
-    "signals": [
-      {
-        "name": "width",
-        "init": "(containerSize()[0])",
-        "on": [
-          {
-            "update": "(containerSize()[0])",
-            "events": "window:resize"
-          }
-        ]
-      },
-      {
-        "name": "height",
-        "init": "(containerSize()[1])",
-        "on": [
-          {
-            "update": "(containerSize()[1])",
-            "events": "window:resize"
-          }
-        ]
-      },
-      {
-        "name": "labelPadding",
-        "update": "@{options.label_padding.value}"
-      },
-      {
-        "name": "outerRadius",
-        "update": "max(min(width, height) / 2 - labelPadding, 10)"
-      },
-      {
-        "name": "innerRadius",
-        "update": "outerRadius * @{options.inner_radius_ratio.value}"
-      }
-    ],
-    "scales": [
-      {
-        "name": "color",
-        "type": "ordinal",
-        "range": "category",
-        "domain": {
-          "data": "allGroups",
-          "field": "groupId"
-        }
-      }
-    ],
-    "marks": [
-      {
-        "type": "group",
-        "encode": {
-          "update": {
-            "x": {"signal": "width / 2"},
-            "y": {"signal": "height / 2"}
-          }
-        },
-        "marks": [
-          {
-            "type": "arc",
-            "name": "groupArc",
-            "from": {"data": "allGroups"},
-            "encode": {
-              "update": {
-                "startAngle": {"field": "groupStartAngle"},
-                "endAngle": {"field": "groupEndAngle"},
-                "innerRadius": {"signal": "innerRadius"},
-                "outerRadius": {"signal": "outerRadius"},
-                "fill": {"scale": "color", "field": "groupId"},
-                "stroke": {"value": "#fff"},
-                "strokeWidth": {"value": 0.5},
-                "tooltip": {"signal": "datum.groupId + ': ' + datum.groupValue"}
-              },
-              "hover": {
-                "fillOpacity": {"value": 0.8}
-              }
-            }
-          },
-          {
-            "type": "path",
-            "name": "chordRibbon",
-            "from": {"data": "chordData"},
-            "encode": {
-              "update": {
-                "path": {"field": "ribbonPath"},
-                "fill": {"scale": "color", "field": "sourceId"},
-                "fillOpacity": {"value": 0.67},
-                "stroke": {"value": "#fff"},
-                "strokeWidth": {"value": 0.5},
-                "tooltip": {"signal": "datum.sourceId + ' → ' + datum.targetId + ': ' + datum.chordValue"}
-              },
-              "hover": {
-                "fillOpacity": {"value": 0.9}
-              }
-            }
-          },
-          {
-            "type": "text",
-            "name": "groupLabel",
-            "from": {"data": "allGroups"},
-            "encode": {
-              "update": {
-                "x": {"signal": "(outerRadius + 5) * cos((datum.groupMidAngle) - PI / 2)"},
-                "y": {"signal": "(outerRadius + 5) * sin((datum.groupMidAngle) - PI / 2)"},
-                "align": {"signal": "datum.groupMidAngle > PI ? 'right' : 'left'"},
-                "baseline": {"value": "middle"},
-                "fontWeight": {"value": "normal"},
-                "fontSize": {"value": 11},
-                "text": {"field": "groupId"},
-                "angle": {"signal": "datum.groupMidAngle > PI ? (datum.groupMidAngle - PI / 2) * 180 / PI - 180 : (datum.groupMidAngle - PI / 2) * 180 / PI"},
-                "limit": {"signal": "max(labelPadding - 10, 20)"},
-                "ellipsis": {"value": "…"},
-                "tooltip": {"field": "groupId"}
-              }
-            }
-          }
-        ]
-      }
-    ]
-  };;
-}
-```
+### As-code syntax
+- [chord_diagram.chart.aml](as-code/chord_diagram.chart.aml)
+
+### Legacy syntax
+- [chord_diagram.vgl.aml](legacy/chord_diagram.vgl.aml)

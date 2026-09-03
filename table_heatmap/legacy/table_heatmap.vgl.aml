@@ -1,0 +1,57 @@
+CustomChart {
+  fields {
+    field date {
+      type: 'dimension',
+      label: "Pick a date field",
+    }
+    field temperature {
+      type: 'measure',
+      label: "Then a number field",
+    }
+  }
+  template: @vgl {
+    "data": {
+      "values": @{values}
+    },
+    "mark": {
+      "type": "rect",
+      "tooltip": true
+    },
+    "config": {
+      "axis": {
+        "domain": false
+      },
+      "view": {
+        "step": 13,
+        "strokeWidth": 0
+      }
+    },
+    "encoding": {
+      "x": {
+        "axis": {
+          "format": "%e",
+          "labelAngle": 0
+        },
+        "type": "ordinal",
+        "field": @{fields.date.name},
+        "title": "Day",
+        "timeUnit": "date"
+      },
+      "y": {
+        "type": "ordinal",
+        "field": @{fields.date.name},
+        "title": "Month",
+        "timeUnit": "month"
+      },
+      "color": {
+        "type": "quantitative",
+        "field": @{fields.temperature.name},
+        "legend": {
+          "title": null
+        },
+        "aggregate": "max"
+      }
+    }
+  }
+  ;;
+}

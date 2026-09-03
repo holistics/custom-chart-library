@@ -1,0 +1,214 @@
+CustomChartDef packed_bubble_force {
+  label: 'Packed Bubble (Force)'
+  icon: 'hicon:chart-bubble-2'
+  description: 'To show category magnitudes as gravity-clustered bubbles, with labels inside the larger bubbles.'
+
+  fields {
+    field dimension {
+      label: 'Dimension'
+      type: 'dimension'
+      sort {
+        apply_order: 1
+        direction: 'asc'
+      }
+    }
+
+    field value {
+      label: 'Value'
+      type: 'measure'
+      sort {
+        apply_order: 2
+        direction: 'desc'
+      }
+    }
+  }
+
+  options {
+    option gravity_x {
+      label: 'Horizontal gravity'
+      type: 'select'
+      options: [
+        0.05,
+        0.1,
+        0.2,
+        0.3,
+        0.5
+      ]
+      default_value: 0.1
+    }
+
+    option gravity_y {
+      label: 'Vertical gravity'
+      type: 'select'
+      options: [
+        0.05,
+        0.1,
+        0.2,
+        0.3,
+        0.5
+      ]
+      default_value: 0.2
+    }
+
+    option show_labels {
+      label: 'Show labels in bubbles'
+      type: 'toggle'
+      default_value: true
+    }
+
+    option show_tooltip {
+      label: 'Show tooltip'
+      type: 'toggle'
+      default_value: true
+    }
+
+  }
+
+  template: @vg {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "signals": [
+      {
+        "name": "width",
+        "init": "containerSize()[0] - 10",
+        "on": [{ "events": "window:resize", "update": "containerSize()[0] - 10" }]
+      },
+      {
+        "name": "height",
+        "init": "containerSize()[1] - 10",
+        "on": [{ "events": "window:resize", "update": "containerSize()[1] - 10" }]
+      },
+      {"name": "cx", "update": "width / 2"},
+      {"name": "cy", "update": "height / 2"},
+      {"name": "gravityX", "update": "@{options.gravity_x.value}"},
+      {"name": "gravityY", "update": "@{options.gravity_y.value}"},
+      {"name": "maxSize", "update": "(width * height * 0.55) / max(1, length(data('table')))"},
+      {
+        "name": "hovered",
+        "value": null,
+        "on": [
+          {"events": "@nodes:mouseover", "update": "datum.category"},
+          {"events": "@nodes:mouseout", "update": "null"}
+        ]
+      },
+      {
+        "name": "normalPointSelection",
+        "value": null,
+        "on": [
+          {"events": "@nodes:click", "update": "{'@{fields.dimension.name}': [datum['category']]}"},
+          {"events": "click[!event.item]", "update": "null"}
+        ]
+      },
+      {
+        "name": "hoverPointSelection",
+        "value": null,
+        "on": [
+          {"events": "@nodes:mouseover", "update": "{'@{fields.dimension.name}': [datum['category']]}"},
+          {"events": "@nodes:mouseout", "update": "null"}
+        ]
+      }
+    ],
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection"]
+    },
+    "data": [
+      {
+        "name": "table",
+        "values": @{values},
+        "transform": [
+          {"type": "formula", "expr": "datum['@{fields.dimension.name}']", "as": "category"},
+          {"type": "formula", "expr": "datum['@{fields.value.name}']", "as": "amount"},
+          {"type": "filter", "expr": "datum.amount != null && datum.amount > 0"},
+          {
+            "type": "aggregate",
+            "groupby": ["category"],
+            "fields": ["amount"],
+            "ops": ["sum"],
+            "as": ["amount"]
+          }
+        ]
+      }
+    ],
+    "scales": [
+      {
+        "name": "size",
+        "type": "linear",
+        "zero": true,
+        "domain": {"data": "table", "field": "amount"},
+        "range": [16, {"signal": "maxSize"}]
+      },
+      {
+        "name": "color",
+        "type": "ordinal",
+        "domain": {"data": "table", "field": "category", "sort": true},
+        "range": "category"
+      }
+    ],
+    "marks": [
+      {
+        "name": "nodes",
+        "type": "symbol",
+        "from": {"data": "table"},
+        "encode": {
+          "enter": {
+            "xfocus": {"signal": "cx"},
+            "yfocus": {"signal": "cy"}
+          },
+          "update": {
+            "size": {"scale": "size", "field": "amount"},
+            "fill": {"scale": "color", "field": "category"},
+            "fillOpacity": {
+              "signal": "hovered === null || hovered === datum.category ? 1 : 0.3"
+            },
+            "stroke": {"value": "white"},
+            "strokeWidth": {"value": 1.5},
+            "tooltip": {
+              "signal": "@{options.show_tooltip.value} ? {'Category': datum.category, 'Value': format(datum.amount, ',')} : null"
+            }
+          }
+        },
+        "transform": [
+          {
+            "type": "force",
+            "iterations": 100,
+            "static": false,
+            "forces": [
+              {
+                "force": "collide",
+                "iterations": 2,
+                "radius": {"expr": "sqrt(datum.size) / 2 + 1"}
+              },
+              {"force": "center", "x": {"signal": "cx"}, "y": {"signal": "cy"}},
+              {"force": "x", "x": "xfocus", "strength": {"signal": "gravityX"}},
+              {"force": "y", "y": "yfocus", "strength": {"signal": "gravityY"}}
+            ]
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "interactive": false,
+        "from": {"data": "nodes"},
+        "encode": {
+          "update": {
+            "x": {"field": "x"},
+            "y": {"field": "y"},
+            "align": {"value": "center"},
+            "baseline": {"value": "middle"},
+            "text": {"field": "datum.category"},
+            "fontSize": {"signal": "clamp(sqrt(datum.size) / 5.5, 8, 14)"},
+            "fontWeight": {"value": 500},
+            "fill": {"value": "white"},
+            "fillOpacity": {
+              "signal": "hovered === null || hovered === datum.datum.category ? 1 : 0.3"
+            },
+            "limit": {"signal": "sqrt(datum.size) * 0.95"},
+            "opacity": {
+              "signal": "@{options.show_labels.value} && sqrt(datum.size) / 2 > 16 ? 1 : 0"
+            }
+          }
+        }
+      }
+    ]
+  };;
+}

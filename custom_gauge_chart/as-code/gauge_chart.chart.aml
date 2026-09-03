@@ -1,0 +1,262 @@
+CustomChartDef gauge_chart {
+  label: 'Gauge Chart'
+  icon: 'hicon:chart-gauge-2'
+  description: 'To show a single metric as a needle on a gauge against its maximum, making progress easy to read at a glance.'
+  fields {
+    field value {
+      label: 'Value'
+      type: 'measure'
+      sort {
+        apply_order: 1
+        direction: 'desc'
+      }
+    }
+    field max_value {
+      label: 'Max value'
+      type: 'measure'
+      sort {
+        apply_order: 2
+        direction: 'desc'
+      }
+    }
+  }
+
+  options {
+    option needleScale {
+      label: 'Needle scaling factor'
+      type: 'number-input'
+      default_value: 0.8
+    }
+    option showLabels {
+      label: 'Show labels'
+      type: 'toggle'
+      default_value: true
+    }
+    option showTicks {
+      label: 'Show ticks'
+      type: 'toggle'
+      default_value: true
+    }
+    option tickGaps {
+      label: 'Tick gaps'
+      type: 'number-input'
+      default_value: 0.25
+    }
+    option show_tooltip {
+      label: 'Show tooltip'
+      type: 'toggle'
+      default_value: true
+    }
+  }
+  template: @vg {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "autosize": "none",
+    "padding": 0,
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection"]
+    },
+    "signals": [
+      {
+        "name": "width",
+        "init": "containerSize()[0]",
+        "on": [{"events": "window:resize", "update": "containerSize()[0]"}]
+      },
+      {
+        "name": "height",
+        "init": "containerSize()[1]",
+        "on": [{"events": "window:resize", "update": "containerSize()[1]"}]
+      },
+      {"name": "margin", "value": 4},
+
+      // Field format configs. They must be injected in a JSON position like this: interpolating
+      // one inside an expression string coerces it to "[object Object]".
+      {"name": "valueFormat", "value": @{fields.value.format}},
+      {"name": "maxFormat", "value": @{fields.max_value.format}},
+
+      // Layout budget. Text is reserved first and the arc takes what is left, so nothing can
+      // be pushed outside the container. `radiusGuess` exists only to break the circular
+      // dependency between the font sizes and the radius they are derived from.
+      {"name": "radiusGuess", "update": "min((width - 2 * margin) / 2, (height - 2 * margin) * 0.62)"},
+      {"name": "labelFont", "update": "clamp(round(radiusGuess / 5), 9, 20)"},
+      {"name": "valueFont", "update": "clamp(round(radiusGuess / 3), 12, 40)"},
+      {"name": "labelsVisible", "update": "@{options.showLabels.value} && radiusGuess >= 60"},
+      {"name": "labelBand", "update": "labelsVisible ? labelFont * 1.6 : 0"},
+      {"name": "valueBand", "update": "valueFont * 1.4"},
+      {"name": "radius", "update": "max(10, min((width - 2 * margin) / 2, height - 2 * margin - labelBand - valueBand))"},
+      {"name": "innerRadius", "update": "radius * 0.75"},
+      {"name": "drawnHeight", "update": "radius + labelBand + valueBand"},
+      {"name": "cx", "update": "width / 2"},
+      {"name": "cy", "update": "(height - drawnHeight) / 2 + radius"},
+      {"name": "needleLength", "update": "innerRadius * @{options.needleScale.value}"},
+      {"name": "tickStep", "update": "max(@{options.tickGaps.value}, 0.05)"},
+
+      {
+        "name": "normalPointSelection",
+        "value": null,
+        "on": [
+          {"events": "@valueArc:click", "update": "{'@{fields.value.name}': [datum.metricValue]}"},
+          {"events": "click[!event.item]", "update": "null"}
+        ]
+      },
+      {
+        "name": "hoverPointSelection",
+        "value": null,
+        "on": [
+          {"events": "@valueArc:mouseover", "update": "{'@{fields.value.name}': [datum.metricValue]}"},
+          {"events": "@valueArc:mouseout", "update": "null"}
+        ]
+      }
+    ],
+    "data": [
+      {
+        "name": "table",
+        "values": @{values}
+      },
+      {
+        "name": "metric",
+        "source": "table",
+        "transform": [
+          {"type": "formula", "as": "metricValue", "expr": "datum['@{fields.value.name}']"},
+          {"type": "formula", "as": "metricMax", "expr": "datum['@{fields.max_value.name}']"},
+          {"type": "formula", "as": "ratio", "expr": "datum.metricMax > 0 ? clamp(datum.metricValue / datum.metricMax, 0, 1) : 0"}
+        ]
+      },
+      {
+        "name": "tickMarks",
+        "transform": [
+          {"type": "sequence", "start": 0, "stop": {"signal": "1 + tickStep / 2"}, "step": {"signal": "tickStep"}}
+        ]
+      }
+    ],
+    "marks": [
+      // Track
+      {
+        "type": "arc",
+        "from": {"data": "metric"},
+        "encode": {
+          "update": {
+            "x": {"signal": "cx"},
+            "y": {"signal": "cy"},
+            "startAngle": {"signal": "-PI / 2"},
+            "endAngle": {"signal": "PI / 2"},
+            "innerRadius": {"signal": "innerRadius"},
+            "outerRadius": {"signal": "radius"},
+            "fillOpacity": {"value": 0.18}
+          }
+        }
+      },
+      // Progress. No fill set, so it takes config.arc.fill — the workspace palette.
+      {
+        "type": "arc",
+        "name": "valueArc",
+        "from": {"data": "metric"},
+        "encode": {
+          "update": {
+            "x": {"signal": "cx"},
+            "y": {"signal": "cy"},
+            "startAngle": {"signal": "-PI / 2"},
+            "endAngle": {"signal": "-PI / 2 + datum.ratio * PI"},
+            "innerRadius": {"signal": "innerRadius"},
+            "outerRadius": {"signal": "radius"},
+            "tooltip": {
+              "signal": "@{options.show_tooltip.value} ? {'@{fields.value.name}': holisticsFormat(datum.metricValue, valueFormat), '@{fields.max_value.name}': holisticsFormat(datum.metricMax, maxFormat), 'Progress': format(datum.ratio, '.0%')} : null"
+            }
+          }
+        }
+      },
+      // Ticks. Real rules rather than zero-width arcs, so they inherit config.rule.stroke.
+      {
+        "type": "rule",
+        "from": {"data": "tickMarks"},
+        "encode": {
+          "update": {
+            "x": {"signal": "cx + innerRadius * sin(-PI / 2 + datum.data * PI)"},
+            "y": {"signal": "cy - innerRadius * cos(-PI / 2 + datum.data * PI)"},
+            "x2": {"signal": "cx + radius * sin(-PI / 2 + datum.data * PI)"},
+            "y2": {"signal": "cy - radius * cos(-PI / 2 + datum.data * PI)"},
+            "strokeWidth": {"value": 1},
+            "opacity": {"signal": "@{options.showTicks.value} ? 1 : 0"}
+          }
+        }
+      },
+      // Needle
+      {
+        "type": "path",
+        "from": {"data": "metric"},
+        "encode": {
+          "update": {
+            "x": {"signal": "cx"},
+            "y": {"signal": "cy"},
+            "angle": {"signal": "datum.ratio * 180 - 90"},
+            "strokeWidth": {"signal": "max(2, radius * 0.018)"},
+            "strokeCap": {"value": "round"},
+            "path": {"signal": "'M 0 0 L 0 ' + (-needleLength)"}
+          }
+        }
+      },
+      // Needle hub
+      {
+        "type": "symbol",
+        "from": {"data": "metric"},
+        "encode": {
+          "update": {
+            "x": {"signal": "cx"},
+            "y": {"signal": "cy"},
+            "shape": {"value": "circle"},
+            "size": {"signal": "PI * pow(radius * 0.08, 2)"}
+          }
+        }
+      },
+      // Min and max labels, tucked under the arc ends so they can never overhang it
+      {
+        "type": "text",
+        "style": "guide-label",
+        "from": {"data": "metric"},
+        "encode": {
+          "update": {
+            "x": {"signal": "cx - radius"},
+            "y": {"signal": "cy + labelFont * 0.5"},
+            "text": {"signal": "holisticsFormat(0, maxFormat)"},
+            "align": {"value": "left"},
+            "baseline": {"value": "top"},
+            "fontSize": {"signal": "labelFont"},
+            "opacity": {"signal": "labelsVisible ? 1 : 0"}
+          }
+        }
+      },
+      {
+        "type": "text",
+        "style": "guide-label",
+        "from": {"data": "metric"},
+        "encode": {
+          "update": {
+            "x": {"signal": "cx + radius"},
+            "y": {"signal": "cy + labelFont * 0.5"},
+            "text": {"signal": "holisticsFormat(datum.metricMax, maxFormat)"},
+            "align": {"value": "right"},
+            "baseline": {"value": "top"},
+            "fontSize": {"signal": "labelFont"},
+            "opacity": {"signal": "labelsVisible ? 1 : 0"}
+          }
+        }
+      },
+      // Value
+      {
+        "type": "text",
+        "from": {"data": "metric"},
+        "encode": {
+          "update": {
+            "x": {"signal": "cx"},
+            "y": {"signal": "cy + labelBand + valueBand * 0.5"},
+            "text": {"signal": "holisticsFormat(datum.metricValue, valueFormat) + ' (' + format(datum.ratio, '.0%') + ')'"},
+            "align": {"value": "center"},
+            "baseline": {"value": "middle"},
+            "fontSize": {"signal": "valueFont"},
+            "fontWeight": {"value": 600}
+          }
+        }
+      }
+    ]
+  };;
+}

@@ -1,13 +1,13 @@
 # Bar Chart - Sort by Size (or Weight)
 
-## Demo chart
+A stacked, multi-series bar chart whose categories are ordered by total size (or weight) rather than alphabetically — useful when analyzing a metric by customer concentration and you want the largest segments to lead.
 
-![Screenshot 2024-05-03 at 17 51 24](https://github.com/holistics/custom-chart-library/assets/106363759/4cffe3b2-b5f4-4c49-aa37-446d4343f545)
+![Bar Chart - Sort by Size](https://github.com/holistics/custom-chart-library/assets/106363759/4cffe3b2-b5f4-4c49-aa37-446d4343f545)
 
-## Use-case
+## Syntax reference
 
-When you are analyzing a metric by customer concentration, it might be more meaningful to order such segments by their **size**, instead of by **alphabetical order**.
+### As-code syntax
+Not available.
 
-## Chart code
-
-[See here](https://github.com/holistics/custom-chart-library/blob/main/stacked_bar_chart_sort_by_size/stacked-bar-sort-by-size.vgl).
+### Legacy syntax
+- [stacked_bar_chart_sort_by_size.vgl.aml](legacy/stacked_bar_chart_sort_by_size.vgl.aml)

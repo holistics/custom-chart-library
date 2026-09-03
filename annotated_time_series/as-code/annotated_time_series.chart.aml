@@ -1,0 +1,145 @@
+CustomChartDef annotated_time_series {
+  label: 'Annotated Time Series'
+  icon: 'hicon:chart-line-2'
+  description: 'To plot a metric over time with labeled event markers tied to specific dates.'
+  fields {
+    field date {
+      label: 'Date'
+      type: 'dimension'
+      data_type: 'date'
+      sort {
+        apply_order: 1
+        direction: 'asc'
+      }
+    }
+    field value {
+      label: 'Value'
+      type: 'measure'
+      sort {
+        apply_order: 2
+        direction: 'desc'
+      }
+    }
+    field event_label {
+      label: 'Event label'
+      type: 'dimension'
+      sort {
+        apply_order: 3
+        direction: 'asc'
+      }
+    }
+  }
+  options {
+    option event_color {
+      type: 'color-picker'
+      label: 'Event marker color'
+      default_value: '#e5484d'
+    }
+
+    option show_tooltip {
+      type: 'toggle'
+      label: 'Show tooltip'
+      default_value: true
+    }
+  }
+  template: @vgl {
+    "data": {"values": @{values}},
+    "layer": [
+      {
+        "transform": [
+          {"aggregate": [{"op": "sum", "field": @{fields.value.name}, "as": @{fields.value.name}}], "groupby": [@{fields.date.name}]}
+        ],
+        "mark": {"type": "line"},
+        "encoding": {
+          "x": {"field": @{fields.date.name}, "type": "temporal", "axis": {"grid": false}},
+          "y": {"field": @{fields.value.name}, "type": "quantitative", "axis": {"format": @{fields.value.format}, "formatType": "holisticsFormat"}}
+        }
+      },
+      {
+        "transform": [
+          {"aggregate": [{"op": "sum", "field": @{fields.value.name}, "as": @{fields.value.name}}, {"op": "max", "field": @{fields.event_label.name}, "as": @{fields.event_label.name}}], "groupby": [@{fields.date.name}]}
+        ],
+        "mark": {"type": "point", "filled": true, "size": 60, "tooltip": @{options.show_tooltip.value}},
+        "params": [
+          {"name": "normalPointSelection", "select": {"type": "point", "toggle": "true", "clear": "mouseup", "fields": [@{fields.date.name}]}},
+          {"name": "hoverPointSelection", "select": {"type": "point", "on": "mouseover", "clear": "mouseout", "fields": [@{fields.date.name}]}}
+        ],
+        "encoding": {
+          "x": {"field": @{fields.date.name}, "type": "temporal"},
+          "y": {"field": @{fields.value.name}, "type": "quantitative"},
+          "detail": {"field": @{fields.event_label.name}},
+          "opacity": {
+            "condition": [
+              {"test": "!length(data('hoverPointSelection_store')) && !length(data('hoverEventSelection_store'))", "value": 1},
+              {"param": "hoverPointSelection", "empty": false, "value": 1},
+              {"param": "hoverEventSelection", "empty": false, "value": 1}
+            ],
+            "value": 0.15
+          }
+        }
+      },
+      {
+        "transform": [
+          {"filter": "datum['@{fields.event_label.name}'] != null && datum['@{fields.event_label.name}'] != ''"},
+          {"aggregate": [{"op": "sum", "field": @{fields.value.name}, "as": @{fields.value.name}}, {"op": "max", "field": @{fields.event_label.name}, "as": @{fields.event_label.name}}], "groupby": [@{fields.date.name}]}
+        ],
+        "layer": [
+          {
+            "mark": {"type": "rule", "strokeDash": [4, 4], "color": @{options.event_color.value}, "tooltip": @{options.show_tooltip.value}},
+            "encoding": {
+              "x": {"field": @{fields.date.name}, "type": "temporal"},
+              "opacity": {
+                "condition": [
+                  {"test": "!length(data('hoverPointSelection_store')) && !length(data('hoverEventSelection_store'))", "value": 1},
+                  {"param": "hoverPointSelection", "empty": false, "value": 1},
+                  {"param": "hoverEventSelection", "empty": false, "value": 1}
+                ],
+                "value": 0.15
+              }
+            }
+          },
+          {
+            "mark": {"type": "text", "angle": 270, "align": "left", "baseline": "bottom", "dx": 4, "color": @{options.event_color.value}},
+            "encoding": {
+              "x": {"field": @{fields.date.name}, "type": "temporal"},
+              "text": {"field": @{fields.event_label.name}},
+              "opacity": {
+                "condition": [
+                  {"test": "!length(data('hoverPointSelection_store')) && !length(data('hoverEventSelection_store'))", "value": 1},
+                  {"param": "hoverPointSelection", "empty": false, "value": 1},
+                  {"param": "hoverEventSelection", "empty": false, "value": 1}
+                ],
+                "value": 0.15
+              }
+            }
+          },
+          {
+            "mark": {"type": "rule", "strokeWidth": 16, "opacity": 0.001, "tooltip": @{options.show_tooltip.value}},
+            "params": [
+              {"name": "hoverEventSelection", "select": {"type": "point", "on": "mouseover", "clear": "mouseout", "fields": [@{fields.date.name}]}}
+            ],
+            "encoding": {
+              "x": {"field": @{fields.date.name}, "type": "temporal"},
+              "detail": [
+                {"field": @{fields.value.name}},
+                {"field": @{fields.event_label.name}}
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "holisticsConfig": {
+      "crossFilterSignals": ["normalPointSelection"],
+      "contextMenuSignals": ["hoverPointSelection", "hoverEventSelection"]
+    },
+    "config": {
+      "background": null,
+      "view": {"stroke": null},
+      "font": "Inter",
+      "axis": {"title": null, "ticks": false, "labelPadding": 10, "labelFontSize": 11, "labelColor": "#858B9E", "gridDash": [8, 3], "gridColor": "#F4F6F8", "domainColor": "#bec1cb"},
+      "axisX": {"grid": false},
+      "axisY": {"domain": false, "grid": true}
+    }
+  };;
+}
